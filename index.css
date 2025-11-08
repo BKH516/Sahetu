@@ -1,0 +1,1225 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Cairo:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 188 94% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 40%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 214.3 31.8% 85%;
+    --input: 214.3 31.8% 85%;
+    --ring: 188 94% 42%;
+    --radius: 0.5rem;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --info: 221 83% 53%;
+    --info-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 222.2 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 188 94% 50%;
+    --primary-foreground: 222.2 47% 11%;
+    --secondary: 217.2 32.6% 20%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 20%;
+    --muted-foreground: 215 20.2% 75%;
+    --accent: 217.2 32.6% 20%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 40%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 25%;
+    --input: 217.2 32.6% 25%;
+    --ring: 188 94% 50%;
+    --success: 142 76% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 0 0% 100%;
+    --info: 221 83% 60%;
+    --info-foreground: 0 0% 100%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  
+  html {
+    direction: rtl;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-family: 'Cairo', sans-serif;
+    background-color: hsl(var(--background));
+    color: #111827;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    overflow: visible !important;
+  }
+  
+  .dark body {
+    background-color: #111827;
+    color: #f9fafb;
+  }
+}
+
+html, body {
+  overflow-x: hidden !important;
+  width: 100%;
+  max-width: 100vw;
+}
+
+/* Prevent horizontal scroll on all pages */
+img,
+video,
+iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Auth pages specific - no scroll */
+.auth-page {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Smooth transitions for dark mode and interactions */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Override for elements that shouldn't transition */
+input,
+textarea,
+select {
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  background: #f3f4f6;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar {
+  background: #374151;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #374151;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #6b7280;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Enhanced Responsive utilities for all device sizes */
+/* Extra small devices (phones, less than 375px) */
+@media (max-width: 374px) {
+  .text-3xl {
+    font-size: 1.5rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem;
+  }
+  
+  .text-xl {
+    font-size: 1.125rem;
+  }
+  
+  .text-lg {
+    font-size: 1rem;
+  }
+  
+  .p-8 {
+    padding: 1rem;
+  }
+  
+  .p-6 {
+    padding: 0.875rem;
+  }
+  
+  .p-4 {
+    padding: 0.625rem;
+  }
+  
+  .gap-6 {
+    gap: 0.75rem;
+  }
+  
+  .gap-4 {
+    gap: 0.5rem;
+  }
+}
+
+/* Small devices (phones, 375px to 640px) */
+@media (min-width: 375px) and (max-width: 639px) {
+  .container {
+    max-width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  /* Landing page specific padding adjustment */
+  .landing-page .container {
+    padding-left: 1.5rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Medium devices (tablets, 640px to 768px) */
+@media (min-width: 640px) and (max-width: 767px) {
+  .container {
+    max-width: 640px;
+  }
+}
+
+/* Large devices (desktops, 768px to 1024px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container {
+    max-width: 768px;
+  }
+}
+
+/* Extra large devices (large desktops, 1024px and up) */
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+  }
+}
+
+/* Orientation-specific styles */
+@media (orientation: landscape) and (max-height: 500px) {
+  .h-screen {
+    min-height: 500px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  a,
+  input,
+  select {
+    min-height: 44px; /* Minimum touch target size (WCAG 2.1) */
+    min-width: 44px;
+  }
+  
+  .touch-target {
+    padding: 0.75rem;
+  }
+}
+
+/* Animation for sidebar */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.sidebar-enter {
+  animation: slideIn 0.3s ease-out;
+}
+
+.sidebar-exit {
+  animation: slideOut 0.3s ease-in;
+}
+
+/* Shake animation for errors */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Pulse animation */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Scale animation */
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Slide up animation */
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+/* Slide down animation */
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.6s ease-out;
+}
+
+/* Slide right animation */
+@keyframes slideRight {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-right {
+  animation: slideRight 0.6s ease-out;
+}
+
+/* Slide left animation */
+@keyframes slideLeft {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-left {
+  animation: slideLeft 0.6s ease-out;
+}
+
+/* Rotate animation */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-rotate {
+  animation: rotate 2s linear infinite;
+}
+
+/* Bounce animation */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce 3s ease-in-out infinite;
+}
+
+/* Scale animation for cards */
+@keyframes scaleInCard {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scaleInCard 0.4s ease-out;
+}
+
+/* Enhanced Focus styles for better accessibility (WCAG 2.1 AAA) */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 3px solid #0891b2;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.dark button:focus-visible,
+.dark input:focus-visible,
+.dark select:focus-visible,
+.dark textarea:focus-visible,
+.dark a:focus-visible {
+  outline: 3px solid #22d3ee;
+  outline-offset: 2px;
+}
+
+/* Remove default focus outline for mouse users but keep for keyboard */
+button:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip to main content link */
+.skip-to-main {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1em;
+  background-color: #0891b2;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.skip-to-main:focus {
+  left: 50%;
+  transform: translateX(-50%);
+  top: 1em;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  button,
+  input,
+  select,
+  textarea {
+    border-width: 2px;
+  }
+  
+  button:hover,
+  input:hover,
+  select:hover,
+  textarea:hover {
+    border-width: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+}
+
+.gradient-secondary {
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+}
+
+.gradient-success {
+  background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+}
+
+.gradient-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+}
+
+.gradient-info {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+/* Animation helpers */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease-in-out;
+}
+
+/* Card shadow utility */
+.card-shadow {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Enhanced dark mode support with better contrast */
+.dark .bg-white {
+  background-color: #1f2937;
+}
+
+.dark .bg-gray-50 {
+  background-color: #111827;
+}
+
+.dark .bg-gray-100 {
+  background-color: #1f2937;
+}
+
+.dark .text-gray-900 {
+  color: #f9fafb;
+}
+
+.dark .text-gray-800 {
+  color: #f3f4f6;
+}
+
+.dark .text-gray-700 {
+  color: #e5e7eb;
+}
+
+.dark .text-gray-600 {
+  color: #d1d5db;
+}
+
+.dark .text-gray-500 {
+  color: #d1d5db;
+}
+
+.dark .text-gray-400 {
+  color: #d1d5db;
+}
+
+.dark .text-gray-300 {
+  color: #e5e7eb;
+}
+
+.dark .text-gray-200 {
+  color: #f3f4f6;
+}
+
+.dark .text-gray-100 {
+  color: #f9fafb;
+}
+
+.dark .border-gray-200 {
+  border-color: #374151;
+}
+
+.dark .border-gray-300 {
+  border-color: #4b5563;
+}
+
+/* Improved contrast for cyan colors in dark mode */
+.dark .text-cyan-600 {
+  color: #22d3ee;
+}
+
+.dark .text-cyan-500 {
+  color: #22d3ee;
+}
+
+.dark .text-cyan-400 {
+  color: #67e8f9;
+}
+
+.dark .bg-cyan-600 {
+  background-color: #0891b2;
+}
+
+.dark .bg-cyan-500 {
+  background-color: #06b6d4;
+}
+
+.dark .border-cyan-600 {
+  border-color: #0891b2;
+}
+
+.dark .border-cyan-500 {
+  border-color: #06b6d4;
+}
+
+/* Fix for white text on white background in dark mode */
+.dark .text-white {
+  color: #ffffff;
+}
+
+.dark .text-slate-500 {
+  color: #9ca3af;
+}
+
+.dark .text-slate-400 {
+  color: #94a3b8;
+}
+
+.dark .text-slate-300 {
+  color: #cbd5e1;
+}
+
+.dark .text-slate-200 {
+  color: #e2e8f0;
+}
+
+.dark .text-slate-100 {
+  color: #f1f5f9;
+}
+
+/* CRITICAL: Input placeholder visibility fixes - WCAG 2.1 AA Compliant */
+input::placeholder {
+  color: #374151; /* Darker gray for better contrast on white background */
+  opacity: 1;
+}
+
+.dark input::placeholder {
+  color: #d1d5db; /* Lighter gray for better contrast on dark background */
+  opacity: 1;
+}
+
+select::placeholder {
+  color: #374151; /* Darker gray for better contrast on white background */
+  opacity: 1;
+}
+
+.dark select::placeholder {
+  color: #d1d5db; /* Lighter gray for better contrast on dark background */
+  opacity: 1;
+}
+
+textarea::placeholder {
+  color: #374151; /* Darker gray for better contrast on white background */
+  opacity: 1;
+}
+
+.dark textarea::placeholder {
+  color: #d1d5db; /* Lighter gray for better contrast on dark background */
+  opacity: 1;
+}
+
+/* Additional input styling for better visibility */
+input {
+  color: #111827; /* Dark text on light background */
+}
+
+.dark input {
+  color: #ffffff; /* White text on dark background */
+}
+
+/* Label styling for better visibility */
+label {
+  color: #374151; /* Dark text on light background */
+}
+
+.dark label {
+  color: #d1d5db; /* Light text on dark background */
+}
+
+/* Form element styling */
+select {
+  background-color: #ffffff;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+.dark select {
+  background-color: #1f2937;
+  color: #ffffff;
+  border-color: #4b5563;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+.dark select option {
+  background-color: #1f2937;
+  color: #ffffff;
+}
+
+/* Textarea styling */
+textarea {
+  background-color: #ffffff;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+.dark textarea {
+  background-color: #1f2937;
+  color: #ffffff;
+  border-color: #4b5563;
+}
+
+/* Button dark mode enhancements */
+.dark .btn-primary {
+  background-color: #0891b2;
+  color: #ffffff;
+}
+
+.dark .btn-primary:hover {
+  background-color: #0e7490;
+}
+
+.dark .btn-secondary {
+  background-color: #374151;
+  color: #f3f4f6;
+}
+
+.dark .btn-secondary:hover {
+  background-color: #4b5563;
+}
+
+/* Loading animation */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* Utility classes for better UX */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Hover effects */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.dark .hover-lift:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Interactive states */
+.interactive {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.interactive:active {
+  transform: scale(0.98);
+}
+
+/* Loading skeleton */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0%,
+    #e0e0e0 20%,
+    #f0f0f0 40%,
+    #f0f0f0 100%
+  );
+  background-size: 1000px 100%;
+}
+
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    #2a2a2a 0%,
+    #3a3a3a 20%,
+    #2a2a2a 40%,
+    #2a2a2a 100%
+  );
+}
+
+/* Enhanced focus states for better accessibility */
+.focus-visible:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #06b6d4;
+}
+
+.dark .focus-visible:focus {
+  box-shadow: 0 0 0 2px #1f2937, 0 0 0 4px #06b6d4;
+}
+
+/* Improved button hover effects */
+.btn-hover {
+  transition: all 0.2s ease;
+  transform: scale(1);
+}
+
+.btn-hover:hover {
+  transform: scale(1.05);
+}
+
+.btn-hover:active {
+  transform: scale(0.95);
+}
+
+/* Enhanced form validation styles */
+.input-error {
+  border-color: #ef4444;
+}
+
+.dark .input-error {
+  border-color: #f87171;
+}
+
+.input-error:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.input-success {
+  border-color: #10b981;
+}
+
+.dark .input-success {
+  border-color: #34d399;
+}
+
+.input-success:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Responsive text sizing */
+@media (max-width: 640px) {
+  .text-responsive {
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+  }
+}
+
+/* Enhanced mobile navigation */
+@media (max-width: 768px) {
+  .mobile-nav {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .mobile-nav-content {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 20rem;
+    background-color: #ffffff;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+  }
+  
+  .dark .mobile-nav-content {
+    background-color: #1f2937;
+  }
+}
+
+/* Improved table styles for dark mode */
+.dark table {
+  background-color: #1f2937;
+}
+
+.dark th {
+  background-color: #374151;
+  color: #f3f4f6;
+  border-color: #4b5563;
+}
+
+.dark td {
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+.dark tr:hover {
+  background-color: #374151;
+}
+
+/* Enhanced modal styles */
+.dark .modal-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.dark .modal-content {
+  background-color: #1f2937;
+  border-color: #4b5563;
+}
+
+/* Improved tooltip styles */
+.dark .tooltip {
+  background-color: #374151;
+  color: #f3f4f6;
+  border-color: #4b5563;
+}
+
+/* Enhanced card styles */
+.dark .card {
+  background-color: #1f2937;
+  border-color: #4b5563;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.dark .card-header {
+  border-color: #4b5563;
+}
+
+.dark .card-body {
+  color: #d1d5db;
+}
+
+/* Better contrast for dark mode text */
+.dark .text-muted {
+  color: #d1d5db; /* Improved contrast for muted text */
+}
+
+.dark .text-subtle {
+  color: #d1d5db; /* Improved contrast for subtle text */
+}
+
+/* Enhanced text visibility for all elements */
+.dark p {
+  color: #f3f4f6; /* Light text on dark background */
+}
+
+.dark span {
+  color: #f3f4f6; /* Light text on dark background */
+}
+
+.dark div {
+  color: #f3f4f6; /* Light text on dark background */
+}
+
+/* Form field focus states */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+  outline: none;
+  color: #ffffff;
+}
+
+/* Ensure input text is always visible */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="tel"],
+.dark input[type="number"],
+.dark input[type="password"] {
+  color: #ffffff !important;
+  background-color: #1f2937 !important;
+}
+
+.dark select {
+  color: #ffffff !important;
+  background-color: #1f2937 !important;
+}
+
+.dark textarea {
+  color: #ffffff !important;
+  background-color: #1f2937 !important;
+}
+
+/* Ensure all text is visible in dark mode */
+.dark * {
+  color-scheme: dark;
+}
+
+/* Ensure proper contrast for all interactive elements */
+.dark button:not(.bg-gradient-to-r):not(.bg-gradient-to-l) {
+  color: #e5e7eb;
+}
+
+.dark button:hover:not(.bg-gradient-to-r):not(.bg-gradient-to-l) {
+  color: #ffffff;
+}
+
+/* Enhanced status indicators */
+.status-success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.dark .status-success {
+  background-color: #14532d;
+  color: #bbf7d0;
+}
+
+.status-warning {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.dark .status-warning {
+  background-color: #78350f;
+  color: #fde68a;
+}
+
+.status-error {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.dark .status-error {
+  background-color: #7f1d1d;
+  color: #fecaca;
+}
+
+.status-info {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.dark .status-info {
+  background-color: #1e3a8a;
+  color: #bfdbfe;
+}
+
+/* Typewriter Animation Styles */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.typewriter-cursor {
+  animation: blink 1s infinite;
+}
+
+/* Enhanced drop shadow for better text visibility */
+.text-shadow-lg {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Smooth text animation */
+.text-animate {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Responsive text sizing */
+@media (max-width: 1024px) {
+  .text-responsive-xl {
+    font-size: 2rem;
+  }
+  
+  .text-responsive-lg {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .text-responsive-xl {
+    font-size: 2.5rem;
+  }
+  
+  .text-responsive-lg {
+    font-size: 1.5rem;
+  }
+}
+
+/* Enhanced Image Panel Styles */
+.image-panel-shadow {
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.image-blur-overlay {
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* Enhanced gradient overlay */
+.gradient-overlay {
+  background: linear-gradient(
+    135deg,
+    rgba(6, 182, 212, 0.7) 0%,
+    rgba(59, 130, 246, 0.5) 50%,
+    rgba(6, 182, 212, 0.3) 100%
+  );
+}
+
+.dark .gradient-overlay {
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.8) 0%,
+    rgba(31, 41, 55, 0.6) 50%,
+    rgba(17, 24, 39, 0.4) 100%
+  );
+}
+
+/* Smooth transitions for image effects */
+.image-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Enhanced text shadow for better readability */
+.text-shadow-enhanced {
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.2),
+    0 8px 16px rgba(0, 0, 0, 0.1);
+} 
