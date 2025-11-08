@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  base: '/',
+export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? '/Sahetu/' : '/',
   plugins: [react()],
   resolve: {
     alias: {
@@ -79,5 +79,5 @@ export default defineConfig({
       polyfill: false, // Modern browsers don't need polyfill
     },
   },
-})
+}))
 
