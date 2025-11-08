@@ -171,8 +171,8 @@ const Particles3D: React.FC<{ count?: number }> = React.memo(({ count = 30 }) =>
           updateParticles();
         } else {
           // Fast path: update only transforms (most frequent change)
-          const elements = container.querySelectorAll<HTMLDivElement>('.particle');
-          elements.forEach((element, index) => {
+          particleElements.forEach((element, index) => {
+            if (!element || !element.isConnected) return;
             const particle = particles[index];
             const x = particle.x + mouse.x * 0.01;
             const y = particle.y + mouse.y * 0.01;

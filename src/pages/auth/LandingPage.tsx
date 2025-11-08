@@ -284,7 +284,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
                     src={`${import.meta.env.BASE_URL}assets/sihatelogo.png`}
                     alt={t('auth.landing.platformNameShort')}
                     className="w-full h-full object-contain drop-shadow-lg"
-                    loading="lazy"
+                    loading="eager"
                     decoding="async"
                   />
                 </div>
