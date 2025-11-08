@@ -79,15 +79,18 @@ const ScheduleOverview: React.FC<ScheduleOverviewProps> = ({ onNavigate }) => {
   const displaySchedule = sortedSchedule.slice(0, 3);
 
   const todayEn = dayOrder[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
+  const isRTL = i18n.language === 'ar';
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 lg:p-8 hover:shadow-xl transition-all duration-300 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+      <div className={`flex flex-col ${isRTL ? 'sm:flex-row-reverse' : 'sm:flex-row'} items-start sm:items-center justify-between mb-6 gap-4`}>
         <div className="flex-1">
-          <div className={`flex items-center gap-3 ${i18n.language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-            <Calendar className="text-green-600 dark:text-green-400 flex-shrink-0" size={28} />
-            <div className={`flex-1 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
+          <div className={`flex items-center gap-3 flex-wrap sm:flex-nowrap ${isRTL ? 'flex-row-reverse text-right' : 'flex-row text-left'}`}>
+            <div className="flex-shrink-0">
+              <Calendar className="text-green-600 dark:text-green-400" size={28} />
+            </div>
+            <div className="min-w-0">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
                 {t('schedule.workingHours') || 'أوقات الدوام'}
               </h2>
@@ -97,17 +100,17 @@ const ScheduleOverview: React.FC<ScheduleOverviewProps> = ({ onNavigate }) => {
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse sm:flex-row-reverse' : 'flex-row sm:flex-row'}`}>
           <button
             onClick={() => onNavigate('schedule')}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all duration-300 font-medium text-sm hover:scale-105 shadow-md"
+            className={`flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all duration-300 font-medium text-sm hover:scale-105 shadow-md ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}
           >
             <Plus size={16} />
             {t('schedule.addAppointment') || t('common.add')}
           </button>
           <button
             onClick={() => onNavigate('schedule')}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 font-medium text-sm hover:scale-105 shadow-md"
+            className={`flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 font-medium text-sm hover:scale-105 shadow-md ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}
           >
             <Edit size={16} />
             {t('common.edit')}
@@ -150,8 +153,8 @@ const ScheduleOverview: React.FC<ScheduleOverviewProps> = ({ onNavigate }) => {
                 <div className={`absolute top-0 left-0 w-20 h-20 ${isToday ? 'bg-green-200/30' : 'bg-gray-200/20'} dark:bg-white/5 rounded-full -translate-x-10 -translate-y-10 group-hover:scale-150 transition-transform duration-500`}></div>
                 
                 {/* Content */}
-                <div className="relative flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+                <div className={`relative flex items-center justify-between ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
+                  <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse text-right' : 'flex-row text-left'}`}>
                     {/* Day Icon */}
                     <div className={`flex items-center justify-center w-14 h-14 rounded-xl ${
                       isToday 
@@ -164,7 +167,7 @@ const ScheduleOverview: React.FC<ScheduleOverviewProps> = ({ onNavigate }) => {
                     </div>
                     
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
                         <h3 className="font-bold text-lg text-gray-800 dark:text-white">
                           {dayMap[item.day_of_week] || item.day_of_week}
                         </h3>
@@ -174,13 +177,13 @@ const ScheduleOverview: React.FC<ScheduleOverviewProps> = ({ onNavigate }) => {
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 mt-2">
-                        <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
+                      <div className={`flex items-center gap-3 mt-2 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <div className={`flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300 ${isRTL ? 'flex-row-reverse' : ''}`}>
                           <Sun className="w-4 h-4 text-orange-500" />
                           <span className="font-medium">{item.start_time}</span>
                         </div>
-                        <span className="text-gray-400">→</span>
-                        <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
+                        <span className="text-gray-400">{isRTL ? '←' : '→'}</span>
+                        <div className={`flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300 ${isRTL ? 'flex-row-reverse' : ''}`}>
                           <Moon className="w-4 h-4 text-indigo-500" />
                           <span className="font-medium">{item.end_time}</span>
                         </div>
@@ -204,7 +207,7 @@ const ScheduleOverview: React.FC<ScheduleOverviewProps> = ({ onNavigate }) => {
           {sortedSchedule.length > 3 && (
             <button
               onClick={() => onNavigate('schedule')}
-              className="w-full flex items-center justify-center gap-2 p-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-200 rounded-xl transition-all duration-300 font-medium hover:shadow-md group"
+            className={`w-full flex items-center justify-center gap-2 p-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-200 rounded-xl transition-all	duration-300 font-medium hover:shadow-md group ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}
             >
               <span>{t('schedule.viewAllDays') || 'عرض جميع الأيام'} ({sortedSchedule.length})</span>
               <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />

@@ -55,17 +55,20 @@ const ServicesOverview: React.FC<ServicesOverviewProps> = ({ onNavigate }) => {
   }
 
   const displayServices = services.slice(0, 3);
+  const isRTL = i18n.language === 'ar';
   const totalPrice = services.reduce((sum, service) => sum + (parseFloat(service.price) || 0), 0);
   const averagePrice = services.length > 0 ? totalPrice / services.length : 0;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 lg:p-8 hover:shadow-xl transition-all duration-300 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+      <div className={`flex flex-col ${isRTL ? 'sm:flex-row-reverse' : 'sm:flex-row'} items-start sm:items-center justify-between mb-6 gap-4`}>
         <div className="flex-1">
-          <div className={`flex items-center gap-3 ${i18n.language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-            <Stethoscope className="text-blue-600 dark:text-blue-400 flex-shrink-0" size={28} />
-            <div className={`flex-1 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
+          <div className={`flex items-center gap-3 flex-wrap sm:flex-nowrap ${isRTL ? 'flex-row-reverse text-right' : 'flex-row text-left'}`}>
+            <div className="flex-shrink-0">
+              <Stethoscope className="text-blue-600 dark:text-blue-400" size={28} />
+            </div>
+            <div className="min-w-0">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
                 {t('services.availableServices') || 'الخدمات المتاحة'}
               </h2>
@@ -75,7 +78,7 @@ const ServicesOverview: React.FC<ServicesOverviewProps> = ({ onNavigate }) => {
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className={`flex gap-2 ${isRTL ? 'flex-row-reverse sm:flex-row-reverse' : 'flex-row sm:flex-row'}`}>
           <button
             onClick={() => onNavigate('services')}
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all duration-300 font-medium text-sm hover:scale-105 shadow-md"
@@ -122,10 +125,10 @@ const ServicesOverview: React.FC<ServicesOverviewProps> = ({ onNavigate }) => {
               
               {/* Content */}
               <div className="relative">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-start gap-3 flex-1">
+                <div className={`flex items-start justify-between mb-3 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`flex items-start gap-3 flex-1 ${isRTL ? 'flex-row-reverse text-right' : 'flex-row text-left'}`}>
                     {/* Service Icon */}
-                    <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                  <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 flex-shrink-0">
                       <Stethoscope className="w-6 h-6 text-white" />
                     </div>
                     
@@ -151,10 +154,9 @@ const ServicesOverview: React.FC<ServicesOverviewProps> = ({ onNavigate }) => {
                 </div>
 
                 {/* Service Details */}
-                <div className="flex items-center gap-4 mt-3">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
-                    <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    <span className="font-bold text-emerald-700 dark:text-emerald-300">
+                <div className={`flex items-center gap-4 mt-3 ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
+                   <div className={`flex items-center gap-2 px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg ${isRTL ? 'flex-row-reverse' : ''}`}>
+                     <span className="font-bold text-emerald-700 dark:text-emerald-300">
                       {typeof service.price === 'string' || typeof service.price === 'number' 
                         ? parseFloat(service.price.toString()).toLocaleString() 
                         : '0'} {i18n.language === 'ar' ? 'ل.س' : 'SYR'}
@@ -162,7 +164,7 @@ const ServicesOverview: React.FC<ServicesOverviewProps> = ({ onNavigate }) => {
                   </div>
                   
                   {service.duration && (
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <div className={`flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg ${isRTL ? 'flex-row-reverse' : ''}`}>
                       <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                       <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
                         {service.duration} {t('services.minutes') || 'دقيقة'}

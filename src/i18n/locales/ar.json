@@ -400,6 +400,7 @@
     "deleteServiceButton": "حذف الخدمة",
     "page": "صفحة",
     "of": "من",
+    "availableServices": "الخدمات المتاحة",
     "loadingError": "تعذر تحميل الخدمات.",
     "addSuccess": "تم إضافة الخدمة بنجاح ✅",
     "addError": "حدث خطأ أثناء إضافة الخدمة.",
@@ -469,6 +470,10 @@
     "slotAlreadyBooked": "⚠️ هذا الموعد محجوز بالفعل. يرجى اختيار تاريخ أو وقت آخر.",
     "invalidData": "بيانات غير صحيحة. يرجى التحقق من جميع الحقول.",
     "serviceNotFound": "الخدمة غير موجودة. يرجى تحديث الصفحة والمحاولة مرة أخرى.",
+    "newReservationTitle": "حجز جديد",
+    "newReservationMessageSingle": "تم استلام حجز جديد من {{name}}.",
+    "newReservationMessageMultiple": "تم استلام {{count}} حجوزات جديدة.",
+    "patientUnknown": "مريض",
     "addSuccess": "تم إضافة الحجز بنجاح ✅",
     "updateError": "حدث خطأ أثناء تحديث حالة الحجز.",
     "updateSuccess": "تم تحديث حالة الحجز إلى: {{status}}",
@@ -518,11 +523,6 @@
       "status": "الحالة"
     }
   },
-  "language": {
-    "arabic": "العربية",
-    "english": "English",
-    "switchLanguage": "تغيير اللغة"
-  },
   "profile": {
     "notSpecified": "غير محدد",
     "noDescription": "لا يوجد وصف",
@@ -559,7 +559,19 @@
     "personalInfo": "المعلومات الشخصية",
     "manageInfo": "إدارة معلوماتك الشخصية والمهنية",
     "agePlaceholder": "أدخل العمر",
-    "phoneNumberPlaceholder": "مثال: 07701234567"
+    "phoneNumberPlaceholder": "مثال: 07701234567",
+    "email": "البريد الإلكتروني",
+    "professionalInfo": "المعلومات المهنية",
+    "selectLicenseImage": "اختر صورة الترخيص الطبي",
+    "licenseImageSelected": "تم اختيار صورة الترخيص: {{name}}",
+    "instructionsPlaceholder": "تعليمات للمرضى قبل الحجز (اختياري)",
+    "imageTooLarge": "❌ يجب أن يكون حجم الصورة أقل من 5 ميجابايت"
+  },
+  "language": {
+    "arabic": "العربية",
+    "english": "English",
+    "switchLanguage": "تبديل اللغة",
+    "label": "اللغة"
   },
   "overview": {
     "performanceSpeed": "سرعة في الأداء",
@@ -587,6 +599,11 @@
     }
   },
   "notifications": {
+    "title": "الإشعارات",
+    "markAll": "تحديد الكل",
+    "markAllTooltip": "تحديد جميع الإشعارات كمقروءة",
+    "new": "جديد",
+    "viewAll": "عرض جميع الإشعارات",
     "noNotifications": "لا توجد إشعارات",
     "noNotificationsDesc": "سيتم إظهار الإشعارات الجديدة هنا"
   },

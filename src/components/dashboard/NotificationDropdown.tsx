@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bell, X, Check, CheckCheck, Trash2, Clock } from 'lucide-react';
+import { Bell, X, CheckCheck, Trash2, Clock } from 'lucide-react';
 import { useNotifications } from '../../hooks/useNotifications';
 import { formatDistanceToNow } from '../../utils/utils';
 import type { AppNotification } from '../../types';
@@ -11,9 +11,10 @@ interface NotificationDropdownProps {
 }
 
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onClose }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { notifications, stats, loading, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const isRTL = i18n.language === 'ar';
 
   // إغلاق القائمة عند النقر خارجها
   useEffect(() => {
@@ -82,14 +83,15 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
   return (
     <div
       ref={dropdownRef}
-      className="absolute left-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl z-50 animate-slide-down overflow-hidden"
+      className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl z-50 animate-slide-down overflow-hidden`}
+      dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20">
         <div className="flex items-center gap-2">
           <Bell size={20} className="text-cyan-600 dark:text-cyan-400" />
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-            الإشعارات
+            {t('notifications.title', { defaultValue: 'الإشعارات' })}
           </h3>
           {stats.unread > 0 && (
             <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-bold rounded-full">
@@ -102,10 +104,10 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
             <button
               onClick={handleMarkAllRead}
               className="text-xs text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 flex items-center gap-1 transition-colors"
-              title="تحديد الكل كمقروء"
+              title={t('notifications.markAllTooltip', { defaultValue: 'تحديد الكل كمقروء' })}
             >
               <CheckCheck size={16} />
-              <span className="hidden sm:inline">تحديد الكل</span>
+              <span className="hidden sm:inline">{t('notifications.markAll', { defaultValue: 'تحديد الكل' })}</span>
             </button>
           )}
           <button
@@ -173,7 +175,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                       {!notification.read_at && (
                         <span className="flex items-center gap-1 text-xs text-cyan-600 dark:text-cyan-400 font-medium">
                           <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
-                          جديد
+                          {t('notifications.new', { defaultValue: 'جديد' })}
                         </span>
                       )}
                     </div>
@@ -189,7 +191,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       {notifications.length > 0 && (
         <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-center">
           <button className="text-sm text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 font-medium transition-colors">
-            {t('notifications.viewAll') || 'عرض جميع الإشعارات'}
+            {t('notifications.viewAll', { defaultValue: 'عرض جميع الإشعارات' })}
           </button>
         </div>
       )}

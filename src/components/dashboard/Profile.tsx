@@ -324,7 +324,7 @@ const Profile: React.FC = () => {
       }
       
       if (file.size > 5 * 1024 * 1024) {
-        setError('❌ يجب أن يكون حجم الصورة أقل من 5 ميجابايت');
+        setError(t('profile.imageTooLarge', '❌ Image size must be less than 5 MB'));
         return;
       }
       
@@ -346,7 +346,7 @@ const Profile: React.FC = () => {
           </div>
           <div>
             <h1 className="text-2xl lg:text-3xl font-bold mb-1">{t('dashboard.profile')}</h1>
-            <p className="text-cyan-100 text-sm lg:text-lg">{t('profile.manageInfo') || 'إدارة معلوماتك الشخصية والمهنية'}</p>
+            <p className="text-cyan-100 text-sm lg:text-lg">{t('profile.manageInfo', 'Manage your personal and professional information')}</p>
           </div>
         </div>
       </div>
@@ -373,7 +373,7 @@ const Profile: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
               <h2 className="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-3">
                 <User className="w-5 h-5 lg:w-6 lg:h-6 text-cyan-600" />
-                {t('profile.personalInfo') || 'المعلومات الشخصية'}
+                {t('profile.personalInfo', 'Personal Information')}
               </h2>
               <button
                 onClick={() => {
@@ -413,7 +413,7 @@ const Profile: React.FC = () => {
               <div className="space-y-2 group">
                 <label className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2">
                   <Mail size={16} />
-                  البريد الإلكتروني
+                  {t('profile.email', 'Email')}
                 </label>
                 <div className="px-4 py-3 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-gray-700 dark:to-gray-600 rounded-xl text-slate-900 dark:text-slate-100 group-hover:shadow-md transition-all duration-300">
                   {safeDisplayText(profile.email, t('profile.notSpecified'))}
@@ -490,7 +490,7 @@ const Profile: React.FC = () => {
               <div className="space-y-2 md:col-span-2 group">
                 <label className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2">
                   <MapPin size={16} />
-                  العنوان
+                  {t('profile.address')}
                 </label>
                 {isEditing ? (
                   <input
@@ -513,7 +513,7 @@ const Profile: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 lg:p-8 shadow-lg border border-slate-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
             <h2 className="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-3">
               <Briefcase className="w-5 h-5 lg:w-6 lg:h-6 text-green-600" />
-              المعلومات المهنية
+              {t('profile.professionalInfo', 'Professional Information')}
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
@@ -521,7 +521,7 @@ const Profile: React.FC = () => {
               <div className="space-y-2 group md:col-span-2">
                 <label className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2">
                   <Award size={16} />
-                  التخصص
+                  {t('profile.specialization')}
                 </label>
                 {isEditing ? (
                   <select
@@ -529,7 +529,7 @@ const Profile: React.FC = () => {
                     onChange={(e) => setSpecializationId(parseInt(e.target.value) || null)}
                     className="w-full px-4 py-3 border-2 border-slate-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300"
                   >
-                    <option value="">اختر التخصص</option>
+                    <option value="">{t('profile.selectSpecialization')}</option>
                     {specializations.map((spec) => (
                       <option key={spec.id} value={spec.id}>
                         {spec.name_ar || spec.name || spec.name_en}
@@ -548,7 +548,7 @@ const Profile: React.FC = () => {
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2">
                     <Upload size={16} />
-                    صورة الترخيص الطبي
+                    {t('profile.uploadLicense', 'Upload License Image')}
                   </label>
                   <div className="relative">
                     <input
@@ -564,13 +564,13 @@ const Profile: React.FC = () => {
                     >
                       <Upload size={20} className="text-cyan-600 group-hover:scale-110 transition-transform" />
                       <span className="text-slate-700 dark:text-slate-300 font-medium">
-                        {licenseImage ? licenseImage.name : 'اختر صورة الترخيص الطبي'}
+                        {licenseImage ? licenseImage.name : t('profile.selectLicenseImage', 'Choose license image')}
                       </span>
                     </label>
                     {licenseImage && (
                       <div className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
                         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        تم اختيار الصورة: {licenseImage.name}
+                        {t('profile.licenseImageSelected', { name: licenseImage.name, defaultValue: 'Image selected: {{name}}' })}
                       </div>
                     )}
                   </div>
@@ -583,7 +583,7 @@ const Profile: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 lg:p-8 shadow-lg border border-slate-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300">
             <h2 className="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-3">
               <FileText className="w-5 h-5 lg:w-6 lg:h-6 text-blue-600" />
-              {t('profile.profileDescription') || 'الوصف الشخصي'}
+              {t('profile.profileDescription', 'Profile Description')}
             </h2>
 
             <div className="space-y-4">
@@ -612,7 +612,7 @@ const Profile: React.FC = () => {
                     onChange={(e) => setFormData({...formData, instructions_before_booking: e.target.value})}
                     rows={3}
                     className="w-full px-4 py-3 border-2 border-slate-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 resize-none transition-all duration-300"
-                    placeholder="تعليمات للمرضى قبل الحجز (اختياري)"
+                    placeholder={t('profile.instructionsPlaceholder', 'Instructions for patients before booking (optional)')}
                   />
                 ) : (
                   <div className="px-4 py-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl text-slate-900 dark:text-slate-100 min-h-[80px] border border-amber-200 dark:border-amber-800">
@@ -632,7 +632,7 @@ const Profile: React.FC = () => {
                 className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {updating ? <LoadingSpinner size="sm" color="white" /> : <Save size={20} />}
-                {updating ? t('common.saving') || 'جاري الحفظ...' : t('profile.saveChanges')}
+                {updating ? t('common.saving', 'Saving...') : t('profile.saveChanges')}
               </button>
             </div>
           )}
@@ -642,7 +642,7 @@ const Profile: React.FC = () => {
             <div className="flex items-center gap-3 mb-6">
               <Settings className="w-6 h-6 text-cyan-600" />
               <h2 className="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100">
-                {t('profile.settings') || 'الإعدادات'}
+                {t('profile.settings')}
               </h2>
             </div>
 
@@ -651,7 +651,7 @@ const Profile: React.FC = () => {
               <div className="space-y-3">
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                   <Globe className="w-5 h-5 text-cyan-600" />
-                  {t('language.language') || 'اللغة'}
+                  {t('language.label', 'Language')}
                 </label>
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
                   <LanguageSwitcher />
@@ -666,7 +666,7 @@ const Profile: React.FC = () => {
                   ) : (
                     <Sun className="w-5 h-5 text-cyan-600" />
                   )}
-                  {t('profile.theme') || 'الوضع'}
+                  {t('profile.theme', 'Theme')}
                 </label>
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
                   <button
@@ -680,7 +680,7 @@ const Profile: React.FC = () => {
                         <Moon size={20} className="transition-transform duration-300" />
                       )}
                       <span className="font-medium">
-                        {isDark ? (t('dashboard.lightMode') || 'الوضع النهاري') : (t('dashboard.darkMode') || 'الوضع الليلي')}
+                        {isDark ? t('dashboard.lightMode', 'Light Mode') : t('dashboard.darkMode', 'Dark Mode')}
                       </span>
                     </div>
                   </button>

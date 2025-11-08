@@ -460,6 +460,10 @@
     "slotAlreadyBooked": "⚠️ This time slot is already booked. Please choose another date or time.",
     "invalidData": "Invalid data. Please check all fields.",
     "serviceNotFound": "Service not found. Please refresh the page and try again.",
+    "newReservationTitle": "New reservation",
+    "newReservationMessageSingle": "A new reservation just arrived from {{name}}.",
+    "newReservationMessageMultiple": "{{count}} new reservations just arrived.",
+    "patientUnknown": "Patient",
     "addSuccess": "Reservation added successfully ✅",
     "updateError": "An error occurred while updating reservation status.",
     "updateSuccess": "Reservation status updated to: {{status}}",
@@ -509,11 +513,6 @@
       "status": "Status"
     }
   },
-  "language": {
-    "arabic": "العربية",
-    "english": "English",
-    "switchLanguage": "Switch Language"
-  },
   "profile": {
     "notSpecified": "Not specified",
     "noDescription": "No description",
@@ -550,7 +549,19 @@
     "personalInfo": "Personal Information",
     "manageInfo": "Manage your personal and professional information",
     "agePlaceholder": "Enter age",
-    "phoneNumberPlaceholder": "Example: 07701234567"
+    "phoneNumberPlaceholder": "Example: 07701234567",
+    "email": "Email",
+    "professionalInfo": "Professional Information",
+    "selectLicenseImage": "Choose license image",
+    "licenseImageSelected": "License image selected: {{name}}",
+    "instructionsPlaceholder": "Instructions for patients before booking (optional)",
+    "imageTooLarge": "❌ Image size must be less than 5 MB"
+  },
+  "language": {
+    "arabic": "العربية",
+    "english": "English",
+    "switchLanguage": "Switch Language",
+    "label": "Language"
   },
   "schedule": {
     "title": "Weekly Schedule",
@@ -613,6 +624,11 @@
     }
   },
   "notifications": {
+    "title": "Notifications",
+    "markAll": "Mark all",
+    "markAllTooltip": "Mark all as read",
+    "new": "New",
+    "viewAll": "View all notifications",
     "noNotifications": "No notifications",
     "noNotificationsDesc": "New notifications will appear here"
   },

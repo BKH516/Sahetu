@@ -98,15 +98,18 @@ const ReservationsOverview: React.FC<ReservationsOverviewProps> = ({ onNavigate 
   const totalRevenue = reservations
     .filter(res => res.status === 'approved' || res.status === 'completed')
     .reduce((sum, res) => sum + parsePriceToNumber(res.doctor_service?.price), 0);
+  const isRTL = i18n.language === 'ar';
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 lg:p-8 hover:shadow-xl transition-all duration-300 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+      <div className={`flex flex-col ${isRTL ? 'sm:flex-row-reverse' : 'sm:flex-row'} items-start sm:items-center justify-between mb-6 gap-4`}>
         <div className="flex-1">
-          <div className={`flex items-center gap-3 ${i18n.language === 'ar' ? 'flex-row-reverse' : 'flex-row'}`}>
-            <CalendarCheck className="text-purple-600 dark:text-purple-400 flex-shrink-0" size={28} />
-            <div className={`flex-1 ${i18n.language === 'ar' ? 'text-right' : 'text-left'}`}>
+          <div className={`flex items-center gap-3 flex-wrap sm:flex-nowrap ${isRTL ? 'flex-row-reverse text-right' : 'flex-row text-left'}`}>
+            <div className="flex-shrink-0">
+              <CalendarCheck className="text-purple-600 dark:text-purple-400" size={28} />
+            </div>
+            <div className="min-w-0">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
                 {t('reservations.statistics') || 'إحصائيات الحجوزات'}
               </h2>
@@ -178,12 +181,12 @@ const ReservationsOverview: React.FC<ReservationsOverviewProps> = ({ onNavigate 
 
       {/* Revenue Section */}
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-300">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : 'flex-row'}`}>
+          <div className={`flex items-center gap-4 ${isRTL ? 'flex-row-reverse text-right' : 'flex-row'}`}>
             <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center border-4 border-green-300 dark:border-green-700 shadow-lg">
               <DollarSign className="w-8 h-8 text-white" />
             </div>
-            <div>
+            <div className={isRTL ? 'text-right' : ''}>
               <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-1">{t('reservations.totalRevenue') || 'إجمالي الإيرادات'}</p>
               <p className="text-3xl font-bold text-green-800 dark:text-green-300">{totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {i18n.language === 'ar' ? 'ل.س' : 'SYR'}</p>
             </div>

@@ -29,6 +29,7 @@ import { Reservation } from '../../types';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import DropdownFilterButton from '../ui/DropdownFilterButton';
 import { useAuth } from '../../hooks/useAuth';
+import { useNotificationHelpers } from '../common/NotificationSystem';
 
 
 function GenderDropdown({ value, onChange }: { value: string; onChange: (val: string) => void }) {
@@ -180,9 +181,13 @@ const Reservations: React.FC = React.memo(() => {
   });
 
   const { isAuthenticated } = useAuth();
+  const { showInfo } = useNotificationHelpers();
+  const previousReservationsRef = useRef<Reservation[]>([]);
 
-  const fetchReservations = useCallback(async () => {
-    setLoading(true);
+  const fetchReservations = useCallback(async ({ silent = false, notifyOnNew = false }: { silent?: boolean; notifyOnNew?: boolean } = {}) => {
+    if (!silent) {
+      setLoading(true);
+    }
     setError(null);
     try {
       const res = await api.get('/api/doctor/reservations');
@@ -197,8 +202,31 @@ const Reservations: React.FC = React.memo(() => {
       
       const apiData = res.data;
       
-      const reservationsArray = Array.isArray(apiData) ? apiData : (Array.isArray(apiData.data) ? apiData.data : []);
+      const reservationsArray: Reservation[] = Array.isArray(apiData) ? apiData : (Array.isArray(apiData.data) ? apiData.data : []);
       
+      if (notifyOnNew && previousReservationsRef.current.length > 0) {
+        const previousIds = new Set(previousReservationsRef.current.map(res => res.id));
+        const newReservations = reservationsArray.filter(res => !previousIds.has(res.id));
+        if (newReservations.length > 0) {
+          const latestReservation = newReservations[0];
+          const localData = SimpleReservationStorage.get(latestReservation.id);
+          const patientInfo = getPatientData(latestReservation, localData);
+          const patientName = patientInfo.full_name || t('reservations.patientUnknown', { defaultValue: 'مريض' });
+          const notificationTitle = t('reservations.newReservationTitle', { defaultValue: 'حجز جديد' });
+          const notificationMessage = newReservations.length === 1
+            ? t('reservations.newReservationMessageSingle', {
+                defaultValue: 'تم استلام حجز جديد.',
+                name: patientName
+              })
+            : t('reservations.newReservationMessageMultiple', {
+                defaultValue: 'تم استلام {{count}} حجوزات جديدة.',
+                count: newReservations.length
+              });
+          showInfo(notificationTitle, notificationMessage, { duration: 7000 });
+        }
+      }
+
+      previousReservationsRef.current = reservationsArray;
       setReservations(reservationsArray);
       
       // Don't cleanup - this was causing data loss
@@ -208,9 +236,11 @@ const Reservations: React.FC = React.memo(() => {
       const errorMessage = err instanceof Error ? err.message : t('reservations.loadError');
       setError(errorMessage);
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
-  }, [t]);
+  }, [t, showInfo]);
 
   const fetchServices = useCallback(async () => {
     try {
@@ -264,6 +294,31 @@ const Reservations: React.FC = React.memo(() => {
     fetchServices();
     fetchAvailableDates();
   }, [isAuthenticated, fetchReservations, fetchServices, fetchAvailableDates]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let isPageVisible = !document.hidden;
+    const visibilityHandler = () => {
+      isPageVisible = !document.hidden;
+      if (isPageVisible) {
+        fetchReservations({ silent: true, notifyOnNew: true });
+      }
+    };
+
+    document.addEventListener('visibilitychange', visibilityHandler);
+
+    const interval = setInterval(() => {
+      if (isPageVisible && !document.hidden) {
+        fetchReservations({ silent: true, notifyOnNew: true });
+      }
+    }, 20000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', visibilityHandler);
+      clearInterval(interval);
+    };
+  }, [isAuthenticated, fetchReservations]);
 
   
   const handleAddReservation = async (e: React.FormEvent) => {
@@ -580,7 +635,7 @@ const Reservations: React.FC = React.memo(() => {
   
   const getStatusColor = (status: Reservation['status']) => {
     switch (status) {
-      case 'pending': return 'bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning-light';
+      case 'pending': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300';
       case 'approved': return 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light';
       case 'cancelled': return 'bg-danger/10 text-danger dark:bg-danger/20 dark:text-danger-light';
       case 'completed': return 'bg-success/10 text-success dark:bg-success/20 dark:text-success-light';
@@ -920,7 +975,6 @@ const Reservations: React.FC = React.memo(() => {
                 { value: 'approved', label: t('reservations.status.approved'), icon: '✅', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', borderColor: 'border-blue-300 dark:border-blue-700' },
                 { value: 'completed', label: t('reservations.status.completed'), icon: '✔️', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', borderColor: 'border-green-300 dark:border-green-700' },
                 { value: 'cancelled', label: t('reservations.status.cancelled'), icon: '❌', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', borderColor: 'border-red-300 dark:border-red-700' },
-                { value: 'rejected', label: t('reservations.status.rejected'), icon: '⛔', color: 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400', borderColor: 'border-gray-300 dark:border-gray-700' },
               ].map((status) => (
                 <button
                   key={status.value}
@@ -979,7 +1033,7 @@ const Reservations: React.FC = React.memo(() => {
                 { value: 'pending', label: t('reservations.status.pending') },
                 { value: 'approved', label: t('reservations.status.approved') },
                 { value: 'completed', label: t('reservations.status.completed') },
-                { value: 'rejected', label: t('reservations.status.rejected') },
+                { value: 'cancelled', label: t('reservations.status.cancelled') },
               ]}
               value={filterStatus}
               onChange={setFilterStatus}
@@ -1013,10 +1067,10 @@ const Reservations: React.FC = React.memo(() => {
             color="bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light"
           />
           <StatisticsCard
-            icon={<Clock className="text-warning dark:text-warning-light" />}
+          icon={<Clock className="text-yellow-600 dark:text-yellow-300" />}
             label={t('reservations.status.pending')}
             value={filteredReservations.filter(r => r.status === 'pending').length}
-            color="bg-warning/10 text-warning dark:bg-warning/20 dark:text-warning-light"
+            color="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
           />
           <StatisticsCard
             icon={<CheckCircle className="text-green-600 dark:text-green-400" />}

@@ -84,7 +84,7 @@ const ReservationLog: React.FC = () => {
     
     return reservationLogs.filter(log => {
       
-      const allowedStatuses = ['completed', 'rejected'];
+      const allowedStatuses = ['completed', 'cancelled'];
       const matchesStatus = allowedStatuses.includes(log.status) && (filterStatus === "all" || log.status === filterStatus);
       const matchesDate = filterDate === "all" || (log.date && log.date.includes(filterDate));
       
@@ -133,7 +133,7 @@ const ReservationLog: React.FC = () => {
 
   
   const totalCompleted = reservationLogs.filter(log => log.status === 'completed').length;
-  const totalRejected = reservationLogs.filter(log => log.status === 'rejected').length;
+  const totalCancelled = reservationLogs.filter(log => log.status === 'cancelled').length;
   const totalRevenue = reservationLogs
     .filter(log => log.status === 'completed' && log.doctor_service?.price)
     .reduce((sum, log) => sum + Number(log.doctor_service?.price || 0), 0);
@@ -164,7 +164,7 @@ const ReservationLog: React.FC = () => {
           options={[
             { value: 'all', label: t('history.allStatuses') },
             { value: 'completed', label: t('history.completedStatus') },
-            { value: 'rejected', label: t('reservations.status.rejected') },
+            { value: 'cancelled', label: t('reservations.status.cancelled') },
           ]}
           value={filterStatus}
           onChange={setFilterStatus}
@@ -208,8 +208,8 @@ const ReservationLog: React.FC = () => {
         />
         <StatisticsCard
           icon={<XCircle className="text-red-600 dark:text-red-400" />}
-          label={t('reservations.status.rejected')}
-          value={totalRejected}
+          label={t('reservations.status.cancelled')}
+          value={totalCancelled}
           color="bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400"
         />
         <StatisticsCard

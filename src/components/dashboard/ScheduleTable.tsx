@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useLayoutEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
   Table,
@@ -44,36 +44,8 @@ const ScheduleTable = () => {
     setTimeout(() => setCustomAlert(null), 3000);
   };
 
-  
-  const [currentPage, setCurrentPage] = useState(1);
-  
-  
-  const [rowsPerPage, setRowsPerPage] = useState(3); 
-
-  
-  useLayoutEffect(() => {
-    const updateRowsPerPage = () => {
-      if (typeof window !== 'undefined') {
-        if (window.innerWidth >= 1024) setRowsPerPage(3);
-        else if (window.innerWidth >= 640) setRowsPerPage(4);
-        else setRowsPerPage(5);
-      }
-    };
-    updateRowsPerPage(); 
-    window.addEventListener('resize', updateRowsPerPage);
-    return () => window.removeEventListener('resize', updateRowsPerPage);
-  }, []);
-  
-  const totalPages = Math.ceil(schedule.length / rowsPerPage);
-  
-  
   const dayOrder = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
   const sortedSchedule = [...schedule].sort((a, b) => dayOrder.indexOf(a.day_of_week) - dayOrder.indexOf(b.day_of_week));
-  const currentItems = sortedSchedule.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
-
   
   const [modalOpen, setModalOpen] = useState(false);
   const [modalEditIndex, setModalEditIndex] = useState<number | null>(null);
@@ -161,8 +133,11 @@ const ScheduleTable = () => {
   };
 
   
-  const handleEditClick = (index: number) => () => {
-    setModalEditIndex(index);
+  const handleEditClick = (id: number) => () => {
+    const index = schedule.findIndex((item) => item.id === id);
+    if (index !== -1) {
+      setModalEditIndex(index);
+    }
   };
 
   const handleDeleteClick = (id: number) => () => {
@@ -259,7 +234,7 @@ const ScheduleTable = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
-                {currentItems.map((item, idx) => {
+                {sortedSchedule.map((item, idx) => {
                   const isToday = item.day_of_week === todayEn;
                   return (
                     <tr key={item.id}
@@ -272,7 +247,7 @@ const ScheduleTable = () => {
                         <div className="flex justify-center gap-2 sm:gap-3">
                           <button 
                             type="button"
-                            onClick={handleEditClick((currentPage - 1) * rowsPerPage + idx)}
+                            onClick={handleEditClick(item.id)}
                             className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 shadow transition-all dark:bg-blue-700 dark:hover:bg-blue-800 dark:text-white"
                             title={t('common.edit')}>
                             <Edit2 size={14} className="sm:w-4 sm:h-4" />
@@ -292,27 +267,6 @@ const ScheduleTable = () => {
               </tbody>
             </table>
           </div>
-        </div>
-
-        {}
-        <div className="flex justify-center gap-2 sm:gap-4 mt-4">
-          <Button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-700 transition-colors text-sm"
-          >
-            السابق
-          </Button>
-          <span className="self-center text-gray-700 text-sm sm:text-base">
-            صفحة {currentPage} من {totalPages}
-          </span>
-          <Button
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-700 transition-colors text-sm"
-          >
-            التالي
-          </Button>
         </div>
 
         {}
