@@ -43,29 +43,8 @@ export default defineConfig(({ mode }) => ({
     },
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          // Separate vendor chunks for better caching
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
-            }
-            if (id.includes('framer-motion')) {
-              return 'animation-vendor';
-            }
-            if (id.includes('i18next') || id.includes('react-i18next')) {
-              return 'i18n-vendor';
-            }
-            if (id.includes('lucide-react')) {
-              return 'ui-vendor';
-            }
-            if (id.includes('axios')) {
-              return 'http-vendor';
-            }
-            // Other node_modules
-            return 'vendor';
-          }
-        },
-        // Optimize chunk names
+        // Preserve naming for deterministic deploy artefacts while letting Rollup
+        // manage chunk splitting automatically to avoid circular dependencies.
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
