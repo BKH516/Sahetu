@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useTranslation } from 'react-i18next';
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { useDebounce } from '../../hooks';
+import { useDebounce, useNotifications } from '../../hooks';
 import { SimpleReservationStorage } from '../../utils/simpleStorage';
 import {
   Select,
@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "../ui/table";
 import StatisticsCard from './StatisticsCard';
-import { CheckCircle, BarChart2, Clock, Eye } from 'lucide-react';
+import { CheckCircle, BarChart2, Clock, Eye, Loader2 } from 'lucide-react';
 import FilterBar from './FilterBar';
 import DialogCustom from "../ui/DialogCustom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../ui/dialog";
@@ -182,6 +182,9 @@ const Reservations: React.FC = React.memo(() => {
 
   const { isAuthenticated } = useAuth();
   const { showInfo } = useNotificationHelpers();
+  const { fetchNotifications: refreshNotifications } = useNotifications();
+  const [isSubmittingReservation, setIsSubmittingReservation] = useState(false);
+  const [statusUpdatingId, setStatusUpdatingId] = useState<number | null>(null);
   const previousReservationsRef = useRef<Reservation[]>([]);
 
   const fetchReservations = useCallback(async ({ silent = false, notifyOnNew = false }: { silent?: boolean; notifyOnNew?: boolean } = {}) => {
@@ -325,6 +328,9 @@ const Reservations: React.FC = React.memo(() => {
     e.preventDefault();
     setSuccess(null);
     setError(null);
+    if (isSubmittingReservation) {
+      return;
+    }
     
     
     if (!newReservation.gender) {
@@ -387,6 +393,7 @@ const Reservations: React.FC = React.memo(() => {
       return;
     }
     
+    setIsSubmittingReservation(true);
     try {
       
       const reservationData = {
@@ -482,6 +489,11 @@ const Reservations: React.FC = React.memo(() => {
       
       
       showAlert(t('reservations.addSuccess'), 'success');
+      try {
+        await refreshNotifications({ silent: true });
+      } catch (refreshError) {
+        console.error('Failed to refresh notifications after adding reservation:', refreshError);
+      }
       
       
       setIsAddDialogOpen(false);
@@ -532,12 +544,19 @@ const Reservations: React.FC = React.memo(() => {
       setError(errorMessage);
       showAlert(errorMessage, 'error');
     }
+    finally {
+      setIsSubmittingReservation(false);
+    }
   };
 
   
   const updateReservationStatus = async (id: number, newStatus: Reservation['status']) => {
     setSuccess(null);
     setError(null);
+    if (statusUpdatingId !== null) {
+      return;
+    }
+    setStatusUpdatingId(id);
     
     // Optimistic update
     const previousReservations = [...reservations];
@@ -567,12 +586,20 @@ const Reservations: React.FC = React.memo(() => {
       }
       
       showAlert(t('reservations.updateSuccess', { status: getStatusText(newStatus) }), 'success');
+      try {
+        await refreshNotifications({ silent: true });
+      } catch (refreshError) {
+        console.error('Failed to refresh notifications after updating reservation status:', refreshError);
+      }
     } catch (err: any) {
       // Rollback on error
       setReservations(previousReservations);
       const errorMessage = err?.response?.data?.message || t('reservations.updateError');
       setError(errorMessage);
       showAlert(errorMessage, 'error');
+      throw err;
+    } finally {
+      setStatusUpdatingId(null);
     }
   };
 
@@ -853,10 +880,18 @@ const Reservations: React.FC = React.memo(() => {
                 {t('common.cancel')}
               </Button>
               <Button 
-                type="submit" 
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-lg shadow-lg transition-all text-sm"
+                type="submit"
+                disabled={isSubmittingReservation}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-lg shadow-lg transition-all text-sm disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {t('reservations.addReservation')}
+                {isSubmittingReservation ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>{t('common.pleaseWait', { defaultValue: 'يرجى الانتظار...' })}</span>
+                  </>
+                ) : (
+                  t('reservations.addReservation')
+                )}
               </Button>
             </div>
           </form>
@@ -978,22 +1013,30 @@ const Reservations: React.FC = React.memo(() => {
               ].map((status) => (
                 <button
                   key={status.value}
-                  onClick={() => {
-                    updateReservationStatus(selectedReservationForStatus.id, status.value as Reservation['status']);
-                    setIsStatusDialogOpen(false);
-                    setSelectedReservationForStatus(null);
+                  onClick={async () => {
+                    if (!selectedReservationForStatus) return;
+                    try {
+                      await updateReservationStatus(selectedReservationForStatus.id, status.value as Reservation['status']);
+                      setIsStatusDialogOpen(false);
+                      setSelectedReservationForStatus(null);
+                    } catch {
+                      // keep dialog open on error
+                    }
                   }}
+                  disabled={statusUpdatingId !== null}
                   className={`w-full px-4 py-3 rounded-lg border-2 ${status.borderColor} ${
                     selectedReservationForStatus.status === status.value 
                       ? `${status.color} font-bold shadow-md` 
                       : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  } transition-all duration-200 flex items-center gap-3`}
+                  } transition-all duration-200 flex items-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed`}
                 >
                   <span className="text-2xl">{status.icon}</span>
                   <span className="text-base font-medium flex-1 text-right">{status.label}</span>
-                  {selectedReservationForStatus.status === status.value && (
+                  {statusUpdatingId !== null && statusUpdatingId === selectedReservationForStatus?.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+                  ) : selectedReservationForStatus.status === status.value ? (
                     <span className="text-lg">✓</span>
-                  )}
+                  ) : null}
                 </button>
               ))}
             </div>

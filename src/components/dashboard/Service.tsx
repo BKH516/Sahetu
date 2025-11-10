@@ -5,10 +5,10 @@ import { Input } from "../ui/input";
 import DialogCustom from "../ui/DialogCustom";
 import { DoctorService } from "../../types";
 import api from '../../lib/axios';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Loader2, Trash2 } from 'lucide-react';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { UnifiedLoader } from '../ui';
-import { useDoctorProfile } from '../../hooks';
+import { useDoctorProfile, useNotifications } from '../../hooks';
 import { useAuth } from '../../hooks/useAuth';
 
 type TranslatedService = DoctorService & { displayName: string };
@@ -173,7 +173,10 @@ const Service: React.FC = () => {
   const [doctorId, setDoctorId] = useState<number | null>(null);
   
   const { profileData } = useDoctorProfile();
+  const { fetchNotifications: refreshNotifications } = useNotifications();
   const [isAddingService, setIsAddingService] = useState(false);
+  const [updatingServiceId, setUpdatingServiceId] = useState<number | null>(null);
+  const [deletingServiceId, setDeletingServiceId] = useState<number | null>(null);
 
   const [editService, setEditService] = useState<DoctorService | null>(null);
   const [isOpenEditDialog, setIsOpenEditDialog] = useState(false);
@@ -189,6 +192,9 @@ const Service: React.FC = () => {
   const [confirmService, setConfirmService] = useState<DoctorService | null>(null);
 
   const [customAlert, setCustomAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+
+  const isEditingInProgress = editService ? updatingServiceId === editService.id : false;
+  const isDeletingInProgress = confirmService ? deletingServiceId === confirmService.id : false;
   
   // Force re-render by using language in render - no memoization needed
   // react-i18next will handle translation updates automatically
@@ -310,6 +316,9 @@ const Service: React.FC = () => {
 
   const onSubmitAddHandler = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isAddingService) {
+      return;
+    }
     setIsAddingService(true);
     setError(null);
 
@@ -325,6 +334,11 @@ const Service: React.FC = () => {
       showAlert(t('services.addSuccess'), 'success');
       onCloseAddDialog();
       fetchServices();
+      try {
+        await refreshNotifications({ silent: true });
+      } catch (refreshError) {
+        console.error('Failed to refresh notifications after adding service:', refreshError);
+      }
     } catch (err: unknown) {
       const serverMsg = err instanceof Error && 'response' in err ? (err as any).response?.data?.message : null;
       if (serverMsg === "The name has already been taken.") {
@@ -339,6 +353,11 @@ const Service: React.FC = () => {
             fetchServices();
             showAlert(t('services.serviceRestored'), 'success');
             onCloseAddDialog();
+            try {
+              await refreshNotifications({ silent: true });
+            } catch (refreshError) {
+              console.error('Failed to refresh notifications after restoring service:', refreshError);
+            }
             setIsAddingService(false);
             return;
           }
@@ -374,36 +393,59 @@ const Service: React.FC = () => {
   const onSubmitEditHandler = async (evt: React.FormEvent<HTMLFormElement>) => {
     evt.preventDefault();
     if (!editService) return;
+    if (updatingServiceId !== null) {
+      return;
+    }
     setSuccess(null);
     setError(null);
+    const currentId = editService.id;
+    setUpdatingServiceId(currentId ?? null);
     try {
-      const res = await api.post(`/api/doctor/services/${editService.id}`, editService, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+      const res = await api.post(`/api/doctor/services/${currentId}`, editService, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
       
       const updatedService = res.data && typeof res.data === 'object' && !Array.isArray(res.data)
         ? (res.data.data ? res.data.data : res.data)
         : res.data;
-      setServices((prev) => prev.map((srv) => srv.id === editService.id ? updatedService : srv));
+      setServices((prev) => prev.map((srv) => srv.id === currentId ? updatedService : srv));
       showAlert(t('services.updateSuccess'), 'success');
+      try {
+        await refreshNotifications({ silent: true });
+      } catch (refreshError) {
+        console.error('Failed to refresh notifications after updating service:', refreshError);
+      }
       onCloseEditDialog();
     } catch (err: any) {
       setError(t('services.updateError'));
       showAlert(t('services.updateError'), 'error');
+    } finally {
+      setUpdatingServiceId(null);
     }
   };
 
   
   const onDeleteHandler = async () => {
     if (!confirmService || !confirmService.id) return;
+    if (deletingServiceId !== null) {
+      return;
+    }
     setSuccess(null);
     setError(null);
+    setDeletingServiceId(confirmService.id);
     try {
       await api.delete(`/api/doctor/services/${confirmService.id}`);
       setServices((prev) => prev.filter((srv) => srv.id !== confirmService.id));
       showAlert(t('services.deleteSuccess'), 'success');
+      try {
+        await refreshNotifications({ silent: true });
+      } catch (refreshError) {
+        console.error('Failed to refresh notifications after deleting service:', refreshError);
+      }
       onCloseConfirmDialog();
     } catch (err: any) {
       setError(t('services.deleteError'));
       showAlert(t('services.deleteError'), 'error');
+    } finally {
+      setDeletingServiceId(null);
     }
   };
 
@@ -563,9 +605,17 @@ const Service: React.FC = () => {
                 </Button>
                 <Button
                   type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-xl shadow-lg transition-all"
+                  disabled={isAddingService}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-xl shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  {translate('services.addServiceButton')}
+                  {isAddingService ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>{t('common.pleaseWait', { defaultValue: 'يرجى الانتظار...' })}</span>
+                    </>
+                  ) : (
+                    translate('services.addServiceButton')
+                  )}
                 </Button>
               </div>
             </form>
@@ -638,9 +688,17 @@ const Service: React.FC = () => {
                 </Button>
                 <Button
                   type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-medium rounded-xl shadow-lg transition-all"
+                  disabled={updatingServiceId !== null}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-medium rounded-xl shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  {t('services.updateServiceButton')}
+                  {isEditingInProgress ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>{t('common.pleaseWait', { defaultValue: 'يرجى الانتظار...' })}</span>
+                    </>
+                  ) : (
+                    t('services.updateServiceButton')
+                  )}
                 </Button>
               </div>
             </form>
@@ -681,9 +739,17 @@ const Service: React.FC = () => {
                 </Button>
                 <Button
                   onClick={onDeleteHandler}
-                  className="px-8 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-medium rounded-xl shadow-lg transition-all"
+                  disabled={deletingServiceId !== null}
+                  className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-medium rounded-xl shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  {t('services.deleteServiceButton')}
+                  {isDeletingInProgress ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>{t('common.pleaseWait', { defaultValue: 'يرجى الانتظار...' })}</span>
+                    </>
+                  ) : (
+                    t('services.deleteServiceButton')
+                  )}
                 </Button>
               </div>
             </div>

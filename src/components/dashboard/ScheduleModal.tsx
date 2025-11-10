@@ -4,6 +4,7 @@ import DialogCustom from "../ui/DialogCustom";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { sanitizeInput } from "../../utils/utils";
+import { Loader2 } from 'lucide-react';
 
 interface ScheduleItem {
   id: number;
@@ -15,8 +16,9 @@ interface ScheduleItem {
 interface ScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (newItem: ScheduleItem) => void;
+  onAdd: (newItem: ScheduleItem) => Promise<void>;
   existingSchedule: ScheduleItem[];
+  isSubmitting: boolean;
 }
 
 const days = [
@@ -78,6 +80,8 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
   isOpen,
   onClose,
   onAdd,
+  existingSchedule: _existingSchedule,
+  isSubmitting
 }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
@@ -86,7 +90,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
     end: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const sanitizedData = {
@@ -99,8 +103,12 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
       id: Date.now(),
       ...sanitizedData,
     };
-    onAdd(newItem);
-    setFormData({ day: "", start: "", end: "" });
+    try {
+      await onAdd(newItem);
+      setFormData({ day: "", start: "", end: "" });
+    } catch (error) {
+      // keep values so the user can adjust
+    }
   };
 
   return (
@@ -135,6 +143,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                   setFormData((prev) => ({ ...prev, start: e.target.value }))
                 }
                 required
+                disabled={isSubmitting}
                 className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-xl px-4 py-3 focus:border-green-500 dark:focus:border-green-400 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-800 transition-all"
               />
             </div>
@@ -150,6 +159,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
                   setFormData((prev) => ({ ...prev, end: e.target.value }))
                 }
                 required
+                disabled={isSubmitting}
                 className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-xl px-4 py-3 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800 transition-all"
               />
             </div>
@@ -160,15 +170,24 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({
             type="button" 
             variant="outline"
             onClick={onClose}
+            disabled={isSubmitting}
             className="px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-medium transition-all"
           >
             {t('common.cancel')}
           </Button>
           <Button 
             type="submit" 
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-xl shadow-lg transition-all"
+            disabled={isSubmitting}
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-xl shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {t('schedule.addAppointment')}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{t('common.pleaseWait', { defaultValue: 'يرجى الانتظار...' })}</span>
+              </>
+            ) : (
+              t('schedule.addAppointment')
+            )}
           </Button>
         </div>
       </form>

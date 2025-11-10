@@ -29,7 +29,8 @@
     "no": "لا",
     "years": "سنة",
     "noInternetConnection": "لا يوجد اتصال بالإنترنت",
-    "menu": "القائمة"
+    "menu": "القائمة",
+    "pleaseWait": "يرجى الانتظار..."
   },
   "auth": {
     "login": {

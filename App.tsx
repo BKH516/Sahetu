@@ -5,6 +5,7 @@ import './src/i18n/config'; // Initialize i18n
 import { LoadingOverlay } from './src/components/ui';
 import { ErrorBoundary } from './src/components/common/ErrorBoundary';
 import { NotificationProvider } from './src/components/common/NotificationSystem';
+import { NotificationsProvider } from './src/hooks/useNotifications';
 import { cleanOldUserData } from './src/utils/userUtils';
 import { useTheme } from './src/hooks/useTheme';
 import { useAuth } from './src/hooks/useAuth';
@@ -182,25 +183,27 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <NotificationProvider>
-        <MotionConfig reducedMotion="user">
-          <Router basename={import.meta.env.BASE_URL}>
-          <div className="min-h-screen w-screen bg-slate-50 dark:bg-gray-900 text-slate-800 dark:text-gray-100 font-sans transition-colors duration-300">
-              <Suspense fallback={<SuspenseFallback />}>
-                <Routes>
-                  <Route path="/" element={<LandingPageRoute />} />
-                  <Route path="/login" element={<LoginPageRoute />} />
-                  <Route path="/register" element={<RegisterPageRoute />} />
-                  <Route path="/forgot-password" element={<ForgotPasswordRoute />} />
-                  <Route path="/pending-approval" element={<PendingApprovalRoute />} />
-                  <Route element={<ProtectedRoute />}>
-                    <Route path="/dashboard/*" element={<DashboardPageRoute />} />
-                  </Route>
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-                </Suspense>
-          </div>
-          </Router>
-        </MotionConfig>
+        <NotificationsProvider>
+          <MotionConfig reducedMotion="user">
+            <Router basename={import.meta.env.BASE_URL}>
+            <div className="min-h-screen w-screen bg-slate-50 dark:bg-gray-900 text-slate-800 dark:text-gray-100 font-sans transition-colors duration-300">
+                <Suspense fallback={<SuspenseFallback />}>
+                  <Routes>
+                    <Route path="/" element={<LandingPageRoute />} />
+                    <Route path="/login" element={<LoginPageRoute />} />
+                    <Route path="/register" element={<RegisterPageRoute />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordRoute />} />
+                    <Route path="/pending-approval" element={<PendingApprovalRoute />} />
+                    <Route element={<ProtectedRoute />}>
+                      <Route path="/dashboard/*" element={<DashboardPageRoute />} />
+                    </Route>
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                  </Suspense>
+            </div>
+            </Router>
+          </MotionConfig>
+        </NotificationsProvider>
       </NotificationProvider>
     </ErrorBoundary>
   );

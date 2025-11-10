@@ -29,7 +29,8 @@
     "no": "No",
     "years": "years",
     "noInternetConnection": "No internet connection",
-    "menu": "Menu"
+    "menu": "Menu",
+    "pleaseWait": "Please wait..."
   },
   "auth": {
     "login": {

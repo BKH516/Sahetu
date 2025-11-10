@@ -12,7 +12,15 @@ interface NotificationDropdownProps {
 
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onClose }) => {
   const { t, i18n } = useTranslation();
-  const { notifications, stats, loading, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+  const {
+    notifications,
+    stats,
+    loading,
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification
+  } = useNotifications();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isRTL = i18n.language === 'ar';
 
@@ -32,6 +40,14 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchNotifications({ silent: true }).catch(error => {
+        console.error('Failed to refresh notifications:', error);
+      });
+    }
+  }, [isOpen, fetchNotifications]);
 
   if (!isOpen) return null;
 

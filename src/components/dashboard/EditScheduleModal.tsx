@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { Loader2 } from 'lucide-react';
 
 interface ScheduleItem {
   id: number;
@@ -21,8 +22,9 @@ interface ScheduleItem {
 interface EditScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onEdit: (updatedItem: ScheduleItem) => void;
+  onEdit: (updatedItem: ScheduleItem) => Promise<void>;
   initialData: ScheduleItem;
+  isSubmitting: boolean;
 }
 
 const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
@@ -30,6 +32,7 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
   onClose,
   onEdit,
   initialData,
+  isSubmitting
 }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
@@ -58,14 +61,18 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
     'friday',
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const updatedItem: ScheduleItem = {
       id: initialData.id,
       ...formData,
     };
-    onEdit(updatedItem);
-    onClose();
+    try {
+      await onEdit(updatedItem);
+      onClose();
+    } catch (error) {
+      // keep modal open on error
+    }
   };
 
   return (
@@ -85,7 +92,7 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             <Select value={formData.day} onValueChange={(value: string) =>
               setFormData((prev) => ({ ...prev, day: value }))
             }>
-              <SelectTrigger className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-xl px-4 py-3 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all">
+              <SelectTrigger disabled={isSubmitting} className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-xl px-4 py-3 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all">
                 <SelectValue placeholder={t('schedule.selectDay') || 'اختر اليوم'} />
               </SelectTrigger>
               <SelectContent className="dark:bg-gray-800 dark:border-gray-700 bg-white border-2 border-gray-200 rounded-xl">
@@ -110,6 +117,7 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                   setFormData((prev) => ({ ...prev, start: e.target.value }))
                 }
                 required
+                disabled={isSubmitting}
                 className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-xl px-4 py-3 focus:border-green-500 dark:focus:border-green-400 focus:ring-2 focus:ring-green-200 dark:focus:ring-green-800 transition-all"
               />
             </div>
@@ -125,6 +133,7 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
                   setFormData((prev) => ({ ...prev, end: e.target.value }))
                 }
                 required
+                disabled={isSubmitting}
                 className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-xl px-4 py-3 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-800 transition-all"
               />
             </div>
@@ -135,15 +144,24 @@ const EditScheduleModal: React.FC<EditScheduleModalProps> = ({
             type="button" 
             variant="outline"
             onClick={onClose}
+            disabled={isSubmitting}
             className="px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-medium transition-all"
           >
             {t('common.cancel')}
           </Button>
           <Button 
             type="submit" 
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-medium rounded-xl shadow-lg transition-all"
+            disabled={isSubmitting}
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-medium rounded-xl shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {t('schedule.updateAppointment') || t('common.save')}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>{t('common.pleaseWait', { defaultValue: 'يرجى الانتظار...' })}</span>
+              </>
+            ) : (
+              t('schedule.updateAppointment') || t('common.save')
+            )}
           </Button>
         </div>
       </form>

@@ -13,9 +13,10 @@ import ScheduleModal from "./ScheduleModal";
 import { Button } from "../ui/button";
 import api from '../../lib/axios';
 import { DoctorWorkSchedule } from '../../types';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Loader2, Trash2 } from 'lucide-react';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { useAuth } from '../../hooks/useAuth';
+import { useNotifications } from '../../hooks';
 
 const ScheduleTable = () => {
   const { t, i18n } = useTranslation();
@@ -37,6 +38,9 @@ const ScheduleTable = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [customAlert, setCustomAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [isAddingSchedule, setIsAddingSchedule] = useState(false);
+  const [updatingScheduleId, setUpdatingScheduleId] = useState<number | null>(null);
+  const [deletingScheduleId, setDeletingScheduleId] = useState<number | null>(null);
 
   
   const showAlert = (message: string, type: 'success' | 'error') => {
@@ -54,6 +58,7 @@ const ScheduleTable = () => {
   const todayEn = Object.keys(dayMap).find(key => dayMap[key] === dayMap[new Date().toLocaleDateString('ar-EG', { weekday: 'long' })]) || '';
 
   const { isAuthenticated } = useAuth();
+  const { fetchNotifications: refreshNotifications } = useNotifications();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -80,6 +85,10 @@ const ScheduleTable = () => {
   const handleAdd = async (newItem: any) => {
     setSuccess(null);
     setError(null);
+    if (isAddingSchedule) {
+      return;
+    }
+    setIsAddingSchedule(true);
     try {
       const form = new URLSearchParams();
       form.append('day_of_week', reverseDayMap[newItem.day]);
@@ -92,6 +101,11 @@ const ScheduleTable = () => {
         : res.data;
       setSchedule((prev) => [...prev, newSchedule]);
       showAlert(t('schedule.addSuccess'), 'success');
+      try {
+        await refreshNotifications({ silent: true });
+      } catch (refreshError) {
+        console.error('Failed to refresh notifications after adding schedule:', refreshError);
+      }
     } catch (err: any) {
       const serverMsg = err?.response?.data?.message;
       let arabicErrorMsg = t('schedule.addError');
@@ -105,6 +119,9 @@ const ScheduleTable = () => {
       }
       
       showAlert(arabicErrorMsg, 'error');
+      throw err;
+    } finally {
+      setIsAddingSchedule(false);
     }
   };
 
@@ -115,6 +132,10 @@ const ScheduleTable = () => {
       showAlert(t('schedule.updateError'), 'error');
       return;
     }
+    if (updatingScheduleId !== null) {
+      return;
+    }
+    setUpdatingScheduleId(updatedItem.id);
     try {
       const form = new URLSearchParams();
       form.append('day_of_week', reverseDayMap[updatedItem.day]);
@@ -127,8 +148,16 @@ const ScheduleTable = () => {
         : res.data;
       setSchedule((prev) => prev.map((item) => item.id === updatedItem.id ? updatedSchedule : item));
       showAlert(t('schedule.updateSuccess'), 'success');
+      try {
+        await refreshNotifications({ silent: true });
+      } catch (refreshError) {
+        console.error('Failed to refresh notifications after updating schedule:', refreshError);
+      }
     } catch (err: any) {
       showAlert(t('schedule.updateError'), 'error');
+      throw err;
+    } finally {
+      setUpdatingScheduleId(null);
     }
   };
 
@@ -140,8 +169,12 @@ const ScheduleTable = () => {
     }
   };
 
-  const handleDeleteClick = (id: number) => () => {
-    handleDelete(id);
+  const handleDeleteClick = (id: number) => async () => {
+    try {
+      await handleDelete(id);
+    } catch {
+      // errors handled in handler
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -151,12 +184,24 @@ const ScheduleTable = () => {
       showAlert(t('schedule.deleteError'), 'error');
       return;
     }
+    if (deletingScheduleId !== null) {
+      return;
+    }
+    setDeletingScheduleId(id);
     try {
       await api.delete(`/api/doctor/schedules/${id}`);
       setSchedule((prev) => prev.filter((item) => item.id !== id));
       showAlert(t('schedule.deleteSuccess'), 'success');
+      try {
+        await refreshNotifications({ silent: true });
+      } catch (refreshError) {
+        console.error('Failed to refresh notifications after deleting schedule:', refreshError);
+      }
     } catch (err: any) {
       showAlert(t('schedule.deleteError'), 'error');
+      throw err;
+    } finally {
+      setDeletingScheduleId(null);
     }
   };
 
@@ -188,8 +233,12 @@ const ScheduleTable = () => {
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
           onAdd={async (newItem) => {
-            await handleAdd(newItem);
-            setModalOpen(false);
+            try {
+              await handleAdd(newItem);
+              setModalOpen(false);
+            } catch {
+              // keep modal open on error
+            }
           }}
           existingSchedule={schedule.map((item) => ({
             id: item.id,
@@ -197,6 +246,7 @@ const ScheduleTable = () => {
             start: item.start_time,
             end: item.end_time,
           }))}
+          isSubmitting={isAddingSchedule}
         />
 
         {modalEditIndex !== null && (
@@ -204,8 +254,12 @@ const ScheduleTable = () => {
             isOpen={modalEditIndex !== null}
             onClose={() => setModalEditIndex(null)}
             onEdit={async (updatedItem) => {
-              await handleEdit(updatedItem);
-              setModalEditIndex(null);
+              try {
+                await handleEdit(updatedItem);
+                setModalEditIndex(null);
+              } catch {
+                // keep modal open on error
+              }
             }}
             initialData={(() => {
               const item = schedule[modalEditIndex];
@@ -216,6 +270,7 @@ const ScheduleTable = () => {
                 end: item.end_time,
               };
             })()}
+            isSubmitting={updatingScheduleId !== null}
           />
         )}
 
@@ -255,9 +310,14 @@ const ScheduleTable = () => {
                           <button 
                             type="button"
                             onClick={handleDeleteClick(item.id)}
-                            className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 text-red-600 shadow transition-all dark:bg-red-700 dark:hover:bg-red-800 dark:text-white"
+                            disabled={deletingScheduleId !== null}
+                            className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-red-100 hover:bg-red-200 text-red-600 shadow transition-all dark:bg-red-700 dark:hover:bg-red-800 dark:text-white disabled:opacity-60 disabled:cursor-not-allowed"
                             title={t('common.delete')}>
-                            <Trash2 size={14} className="sm:w-4 sm:h-4" />
+                            {deletingScheduleId === item.id ? (
+                              <Loader2 className="sm:w-4 sm:h-4 h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 size={14} className="sm:w-4 sm:h-4" />
+                            )}
                           </button>
                         </div>
                       </td>
