@@ -28,7 +28,8 @@
     "yes": "نعم",
     "no": "لا",
     "years": "سنة",
-    "noInternetConnection": "لا يوجد اتصال بالإنترنت"
+    "noInternetConnection": "لا يوجد اتصال بالإنترنت",
+    "menu": "القائمة"
   },
   "auth": {
     "login": {

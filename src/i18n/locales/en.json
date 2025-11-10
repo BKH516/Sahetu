@@ -28,7 +28,8 @@
     "yes": "Yes",
     "no": "No",
     "years": "years",
-    "noInternetConnection": "No internet connection"
+    "noInternetConnection": "No internet connection",
+    "menu": "Menu"
   },
   "auth": {
     "login": {

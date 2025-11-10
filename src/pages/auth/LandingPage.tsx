@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRight, Shield, Clock, Calendar, Users, TrendingUp, CheckCircle, 
   FileText, BarChart3, Settings, Smartphone, Globe, Lock, Star,
-  MessageCircle, Mail, Phone, MapPin, Zap, UserCheck, Award, Heart, X,
-  Sun, Moon
+  MessageCircle, Mail, Phone, MapPin, Zap, UserCheck, Award, Heart, X, Sun, Moon
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import FloatingElements from '../../components/ui/FloatingElements';
 import Particles3D from '../../components/ui/Particles3D';
-import { useTheme } from '../../hooks/useTheme';
 import LanguageSwitcher from '../../components/ui/LanguageSwitcher';
+import { useTheme } from '../../hooks/useTheme';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -189,30 +188,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
     },
   ];
 
-  const testimonials = [
-    {
-      name: t('auth.landing.testimonials.doctor1.name'),
-      specialty: t('auth.landing.testimonials.doctor1.specialty'),
-      rating: 5,
-      text: t('auth.landing.testimonials.doctor1.text'),
-      avatar: '👨‍⚕️',
-    },
-    {
-      name: t('auth.landing.testimonials.doctor2.name'),
-      specialty: t('auth.landing.testimonials.doctor2.specialty'),
-      rating: 5,
-      text: t('auth.landing.testimonials.doctor2.text'),
-      avatar: '👩‍⚕️',
-    },
-    {
-      name: t('auth.landing.testimonials.doctor3.name'),
-      specialty: t('auth.landing.testimonials.doctor3.specialty'),
-      rating: 5,
-      text: t('auth.landing.testimonials.doctor3.text'),
-      avatar: '👨‍⚕️',
-    },
-  ];
-
   const faqs = useMemo(() => [
     {
       question: t('auth.landing.faq1.question'),
@@ -270,54 +245,60 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
       <div className="relative z-20 min-h-screen">
         {/* Header */}
         <motion.header
-          className="container mx-auto max-w-[95%] sm:max-w-[96%] md:max-w-[97%] lg:max-w-[98%] px-2 sm:px-3 md:px-4 pt-6 lg:pt-5 pb-8"
-          initial={{ opacity: 0, y: -50 }}
+          className="px-4 sm:px-6 lg:px-8 pt-8"
+          initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
         >
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-full blur-xl opacity-50 animate-pulse"></div>
-                <div className="relative w-16 h-16 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-xl border-2 border-blue-600/20 dark:border-blue-400/20 p-2">
+          <div className="container mx-auto max-w-[94%] lg:max-w-[90%]">
+            <div className="flex flex-col gap-4 rounded-2xl border border-gray-200/80 dark:border-gray-800/70 bg-white/85 dark:bg-gray-900/75 backdrop-blur-lg px-4 sm:px-6 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.08)] lg:flex-row lg:items-center lg:justify-between lg:rounded-full lg:border-white/60 dark:lg:border-gray-800/70 lg:bg-white/70 dark:lg:bg-gray-900/70 lg:px-6 lg:py-3 lg:shadow-[0_14px_32px_rgba(15,23,42,0.12)]">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm lg:border-blue-500/40 dark:lg:border-cyan-500/40 lg:shadow-[0_8px_22px_rgba(37,99,235,0.18)]">
                   <img
                     src={`${import.meta.env.BASE_URL}assets/sihatelogo.png`}
                     alt={t('auth.landing.platformNameShort')}
-                    className="w-full h-full object-contain drop-shadow-lg"
+                    className="w-9 h-9 object-contain"
                     loading="eager"
                     decoding="async"
                   />
                 </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-500 dark:text-cyan-400">
+                    {t('auth.landing.platformNameShort')}
+                  </span>
+                  <span className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                    {t('auth.landing.title')}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-3">
-              <LanguageSwitcher />
-              {/* Theme Toggle Button */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={toggleTheme}
-                className="p-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl text-gray-700 dark:text-gray-300 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50 flex items-center justify-center"
-                aria-label={isDark ? t('dashboard.lightMode') : t('dashboard.darkMode')}
-                title={isDark ? t('dashboard.lightMode') : t('dashboard.darkMode')}
-              >
-                {isDark ? (
-                  <Sun className="w-5 h-5" />
-                ) : (
-                  <Moon className="w-5 h-5" />
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 lg:flex-row lg:gap-4 lg:bg-white/40 dark:lg:bg-gray-800/50 lg:border lg:border-white/50 dark:lg:border-gray-700/60 lg:rounded-full lg:px-3 lg:py-2">
+                <div className="flex items-center justify-between sm:justify-end gap-3 rounded-xl border border-gray-200/70 dark:border-gray-800/70 bg-gray-50/90 dark:bg-gray-800/60 px-3 py-2 lg:border lg:border-white/60 dark:lg:border-gray-700/60 lg:bg-white/50 dark:lg:bg-gray-800/60 lg:px-4 lg:py-2 lg:rounded-full lg:gap-3">
+                  <LanguageSwitcher />
+
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={toggleTheme}
+                    className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors duration-200 lg:border-gray-200/70 lg:dark:border-gray-700/70"
+                    aria-label={isDark ? t('dashboard.lightMode') : t('dashboard.darkMode')}
+                    title={isDark ? t('dashboard.lightMode') : t('dashboard.darkMode')}
+                  >
+                    {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                  </motion.button>
+                </div>
+
+                {onLogin && (
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => onLogin?.()}
+                    className="w-full sm:w-auto px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl shadow-sm hover:shadow-md transition-transform duration-200 lg:px-5 lg:py-2 lg:rounded-full lg:bg-gradient-to-r lg:from-blue-600 lg:via-cyan-500 lg:to-emerald-500 lg:shadow-[0_6px_18px_rgba(37,99,235,0.25)]"
+                  >
+                    {t('auth.landing.login')}
+                  </motion.button>
                 )}
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={onGetStarted}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 group"
-              >
-                {t('auth.landing.getStarted')}
-                <ArrowRight className={`w-5 h-5 group-hover:translate-x-1 transition-transform ${isRTL ? 'rotate-180' : ''}`} />
-              </motion.button>
+              </div>
             </div>
           </div>
         </motion.header>
@@ -657,7 +638,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
         </section>
 
         {/* How It Works Section */}
-        <section className="container mx-auto max-w-[95%] sm:max-w-[96%] md:max-w-[97%] lg:max-w-[98%] px-2 sm:px-3 md:px-4 py-20 bg-white/30 dark:bg-gray-800/30 backdrop-blur-xl rounded-3xl my-12">
+        <section id="how-it-works" className="container mx-auto max-w-[95%] sm:max-w-[96%] md:max-w-[97%] lg:max-w-[98%] px-2 sm:px-3 md:px-4 py-20 bg-white/30 dark:bg-gray-800/30 backdrop-blur-xl rounded-3xl my-12">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -702,7 +683,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
         </section>
 
         {/* Statistics Section */}
-        <section className="container mx-auto max-w-[95%] sm:max-w-[96%] md:max-w-[97%] lg:max-w-[98%] px-2 sm:px-3 md:px-4 py-20">
+        <section id="stats" className="container mx-auto max-w-[95%] sm:max-w-[96%] md:max-w-[97%] lg:max-w-[98%] px-2 sm:px-3 md:px-4 py-20">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -737,59 +718,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
           </div>
         </section>
 
-        {/* Testimonials Section */}
-        <section className="container mx-auto max-w-[95%] sm:max-w-[96%] md:max-w-[97%] lg:max-w-[98%] px-2 sm:px-3 md:px-4 py-20">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h3 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-              {t('auth.landing.testimonialsTitle')}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 text-lg">
-              {t('auth.landing.testimonialsSubtitle')}
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/20"
-              >
-                <div className="flex items-center mb-4">
-                  <div className="text-4xl mr-3">{testimonial.avatar}</div>
-                  <div>
-                    <h4 className="font-bold text-gray-900 dark:text-white">
-                      {testimonial.name}
-                    </h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {testimonial.specialty}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex mb-3">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-gray-600 dark:text-gray-400 italic">
-                  "{testimonial.text}"
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
         {/* FAQ Section */}
-        <section className="container mx-auto max-w-[95%] sm:max-w-[96%] md:max-w-[97%] lg:max-w-[98%] px-2 sm:px-3 md:px-4 py-20">
+        <section id="faq" className="container mx-auto max-w-[95%] sm:max-w-[96%] md:max-w-[97%] lg:max-w-[98%] px-2 sm:px-3 md:px-4 py-20">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -827,7 +757,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onLogin }) => {
         </section>
 
         {/* CTA Section */}
-        <section className="container mx-auto max-w-[95%] sm:max-w-[96%] md:max-w-[97%] lg:max-w-[98%] px-2 sm:px-3 md:px-4 py-20">
+        <section id="contact" className="container mx-auto max-w-[95%] sm:max-w-[96%] md:max-w-[97%] lg:max-w-[98%] px-2 sm:px-3 md:px-4 py-20">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
