@@ -550,7 +550,7 @@ const Reservations: React.FC = React.memo(() => {
   };
 
   
-  const updateReservationStatus = async (id: number, newStatus: Reservation['status']) => {
+  const updateReservationStatus = async (id: number, newStatus: Reservation['status'], reason?: string) => {
     setSuccess(null);
     setError(null);
     if (statusUpdatingId !== null) {
@@ -563,7 +563,11 @@ const Reservations: React.FC = React.memo(() => {
     setReservations(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
     
     try {
-      const res = await api.patch(`/api/doctor/reservations/updateStatus/${id}`, { status: newStatus }, { headers: { 'Content-Type': 'application/json' } });
+      const requestBody: { status: string; reason?: string } = { status: newStatus };
+      if (newStatus === 'cancelled' && reason) {
+        requestBody.reason = reason;
+      }
+      const res = await api.patch(`/api/doctor/reservations/updateStatus/${id}`, requestBody, { headers: { 'Content-Type': 'application/json' } });
       
       if (res.status >= 400) {
         // Rollback on error
@@ -1015,12 +1019,20 @@ const Reservations: React.FC = React.memo(() => {
                   key={status.value}
                   onClick={async () => {
                     if (!selectedReservationForStatus) return;
-                    try {
-                      await updateReservationStatus(selectedReservationForStatus.id, status.value as Reservation['status']);
+                    if (status.value === 'cancelled') {
+                      // Open reason dialog for cancelled status
+                      setPendingStatusUpdate({ id: selectedReservationForStatus.id, status: status.value as Reservation['status'] });
                       setIsStatusDialogOpen(false);
-                      setSelectedReservationForStatus(null);
-                    } catch {
-                      // keep dialog open on error
+                      setIsReasonDialogOpen(true);
+                      setCancellationReason('');
+                    } else {
+                      try {
+                        await updateReservationStatus(selectedReservationForStatus.id, status.value as Reservation['status']);
+                        setIsStatusDialogOpen(false);
+                        setSelectedReservationForStatus(null);
+                      } catch {
+                        // keep dialog open on error
+                      }
                     }
                   }}
                   disabled={statusUpdatingId !== null}
@@ -1052,6 +1064,79 @@ const Reservations: React.FC = React.memo(() => {
               >
                 {t('common.cancel')}
               </Button>
+            </div>
+          </DialogCustom>
+        )}
+
+        {/* Cancellation Reason Dialog */}
+        {pendingStatusUpdate && (
+          <DialogCustom
+            open={isReasonDialogOpen}
+            onOpenChange={setIsReasonDialogOpen}
+            title={t('reservations.cancellationReason', 'سبب الإلغاء')}
+            description={t('reservations.cancellationReasonDescription', 'يرجى إدخال سبب إلغاء الحجز (مطلوب)')}
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('reservations.reason', 'السبب')}
+                </label>
+                <textarea
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  placeholder={t('reservations.reasonPlaceholder', 'أدخل سبب الإلغاء...')}
+                  rows={4}
+                  className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+                  maxLength={1000}
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {cancellationReason.length}/1000
+                </p>
+              </div>
+              <div className="flex justify-end gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => {
+                    setIsReasonDialogOpen(false);
+                    setPendingStatusUpdate(null);
+                    setCancellationReason('');
+                    setIsStatusDialogOpen(true);
+                  }}
+                  className="px-4 py-2 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg font-medium transition-all text-sm"
+                >
+                  {t('common.back', 'رجوع')}
+                </Button>
+                <Button 
+                  type="button"
+                  onClick={async () => {
+                    if (!cancellationReason.trim()) {
+                      setError(t('reservations.reasonRequired', 'السبب مطلوب'));
+                      return;
+                    }
+                    try {
+                      await updateReservationStatus(pendingStatusUpdate.id, pendingStatusUpdate.status, cancellationReason.trim());
+                      setIsReasonDialogOpen(false);
+                      setPendingStatusUpdate(null);
+                      setCancellationReason('');
+                      setSelectedReservationForStatus(null);
+                    } catch {
+                      // keep dialog open on error
+                    }
+                  }}
+                  disabled={!cancellationReason.trim() || statusUpdatingId !== null}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {statusUpdatingId !== null ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin inline-block mr-2" />
+                      {t('common.processing', 'جاري المعالجة...')}
+                    </>
+                  ) : (
+                    t('reservations.confirmCancellation', 'تأكيد الإلغاء')
+                  )}
+                </Button>
+              </div>
             </div>
           </DialogCustom>
         )}

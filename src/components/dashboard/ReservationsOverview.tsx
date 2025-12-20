@@ -5,6 +5,7 @@ import api from '../../lib/axios';
 import { Reservation } from '../../types';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import { SimpleReservationStorage } from '../../utils/simpleStorage';
+import { useAuthStore, getDecodedToken } from '../../store/auth.store';
 
 interface ReservationsOverviewProps {
   onNavigate: (tab: string) => void;
@@ -15,10 +16,27 @@ const ReservationsOverview: React.FC<ReservationsOverviewProps> = ({ onNavigate 
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { token } = useAuthStore();
 
   useEffect(() => {
-    fetchReservations();
-  }, []);
+    // Wait for token to be available before making API call
+    const currentToken = token || useAuthStore.getState().token || getDecodedToken();
+    if (currentToken) {
+      fetchReservations();
+    } else {
+      // Wait a bit for token to be available
+      const timer = setTimeout(() => {
+        const retryToken = useAuthStore.getState().token || getDecodedToken();
+        if (retryToken) {
+          fetchReservations();
+        } else {
+          setLoading(false);
+          setError(t('common.authenticationRequired') || 'Authentication required');
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [token]);
 
   const fetchReservations = async () => {
     try {

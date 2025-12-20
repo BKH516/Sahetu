@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../lib/axios';
-import { useAuthStore } from '../store/auth.store';
+import { useAuthStore, getDecodedToken } from '../store/auth.store';
 
 interface DoctorProfileData {
   id?: string;
@@ -35,9 +35,33 @@ export const useDoctorProfile = () => {
   const [profileData, setProfileData] = useState<DoctorProfileData | null>(profileCache.data);
   const [loading, setLoading] = useState(profileCache.loading);
   const [error, setError] = useState<string | null>(profileCache.error);
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
 
   const fetchProfile = useCallback(async (forceRefresh = false) => {
+    // Wait for token to be available before making API call
+    const waitForToken = async (maxWait = 3000): Promise<boolean> => {
+      const startTime = Date.now();
+      while (Date.now() - startTime < maxWait) {
+        const currentToken = useAuthStore.getState().token || getDecodedToken();
+        if (currentToken) {
+          return true;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      return false;
+    };
+
+    // Check if token is available
+    const currentToken = token || useAuthStore.getState().token || getDecodedToken();
+    if (!currentToken) {
+      const tokenAvailable = await waitForToken();
+      if (!tokenAvailable) {
+        const errorMsg = 'Authentication token not available. Please login again.';
+        setError(errorMsg);
+        profileCache.error = errorMsg;
+        return null;
+      }
+    }
     
     if (!forceRefresh && 
         profileCache.data && 
@@ -141,10 +165,12 @@ export const useDoctorProfile = () => {
 
   
   useEffect(() => {
-    if (user && !profileData && !loading) {
+    // Check for both user and token before fetching profile
+    const currentToken = token || useAuthStore.getState().token || getDecodedToken();
+    if (user && currentToken && !profileData && !loading) {
       fetchProfile();
     }
-  }, [user, profileData, loading, fetchProfile]);
+  }, [user, token, profileData, loading, fetchProfile]);
 
   return {
     profileData,

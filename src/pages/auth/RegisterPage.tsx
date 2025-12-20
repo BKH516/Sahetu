@@ -52,6 +52,9 @@ interface FormErrors {
   license_image?: string;
   profile_description?: string;
   fcm_token?: string;
+  latitude?: string;
+  longitude?: string;
+  province_id?: string;
   general?: string;
 }
 
@@ -83,12 +86,17 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
   const [license_image, setLicenseImage] = useState<File | null>(null);
   const [profile_description, setProfileDescription] = useState("");
   const [fcm_token, setFcmToken] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [province_id, setProvinceId] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [specializations, setSpecializations] = useState<Specialization[]>([]);
   const [isLoadingSpecializations, setIsLoadingSpecializations] = useState(false);
+  const [provinces, setProvinces] = useState<any[]>([]);
+  const [isLoadingProvinces, setIsLoadingProvinces] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -280,7 +288,31 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
       }
     };
 
+    const fetchProvinces = async () => {
+      setIsLoadingProvinces(true);
+      try {
+        const response = await ApiEndpointHelper.getProvinces();
+        if (response.data && Array.isArray(response.data)) {
+          setProvinces(response.data);
+        } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+          setProvinces(response.data.data);
+        } else {
+          console.warn('Invalid provinces data format:', response.data);
+          setProvinces([]);
+          setErrors((prev) => ({ ...prev, general: t('auth.register.provincesLoadError', 'فشل في تحميل المحافظات. يرجى المحاولة مرة أخرى.') }));
+        }
+      } catch (error: any) {
+        console.error('Error fetching provinces:', error);
+        setProvinces([]);
+        const errorMessage = error?.message || error?.response?.data?.message || t('auth.register.provincesLoadError', 'فشل في تحميل المحافظات. يرجى المحاولة مرة أخرى.');
+        setErrors((prev) => ({ ...prev, general: errorMessage }));
+      } finally {
+        setIsLoadingProvinces(false);
+      }
+    };
+
     fetchSpecializations();
+    fetchProvinces();
   }, []);
 
   const validateCurrentStep = () => {
@@ -391,6 +423,9 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
         formData.append("age", age);
         formData.append("gender", gender);
       formData.append("profile_description", profile_description);
+      formData.append("latitude", latitude);
+      formData.append("longitude", longitude);
+      formData.append("province_id", province_id);
       
       if (fcm_token) {
         formData.append("fcm_token", fcm_token);
@@ -494,6 +529,15 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
         break;
       case "fcm_token":
         setFcmToken(value);
+        break;
+      case "latitude":
+        setLatitude(value);
+        break;
+      case "longitude":
+        setLongitude(value);
+        break;
+      case "province_id":
+        setProvinceId(value);
         break;
     }
     
@@ -716,6 +760,57 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
                   {t('auth.register.address')}
                 </label>
                 {renderInput("address", address, t('auth.register.addressPlaceholder'), "text", <MapPin className="w-5 h-5" />)}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+                  {t('auth.register.province', 'المحافظة')}
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 start-0 flex items-center ps-4 pointer-events-none text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <select
+                    id="province_id"
+                    value={province_id}
+                    onChange={(e) => handleInputChange("province_id" as keyof FormErrors, e.target.value)}
+                    className={`w-full ps-12 pe-4 py-3.5 bg-gray-50/50 dark:bg-gray-800/50 border-2 rounded-xl text-gray-900 dark:text-gray-100 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 ${
+                      errors.province_id
+                        ? "border-red-300 dark:border-red-600"
+                        : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                    }`}
+                    required
+                    disabled={isLoading || !isOnline || isLoadingProvinces}
+                  >
+                    <option value="">
+                      {isLoadingProvinces ? t('auth.register.loadingProvinces', 'جاري تحميل المحافظات...') : t('auth.register.selectProvince', 'اختر المحافظة')}
+                    </option>
+                    {provinces.map((province) => (
+                      <option key={province.id} value={String(province.id)}>
+                        {province.name_ar || province.name_en || province.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {errors.province_id && (
+                  <p className="text-sm text-red-500 dark:text-red-400 mt-2">
+                    {errors.province_id}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+                  {t('auth.register.latitude', 'خط العرض')}
+                </label>
+                {renderInput("latitude", latitude, t('auth.register.latitudePlaceholder', 'أدخل خط العرض (-90 إلى 90)'), "number", <MapPin className="w-5 h-5" />)}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+                  {t('auth.register.longitude', 'خط الطول')}
+                </label>
+                {renderInput("longitude", longitude, t('auth.register.longitudePlaceholder', 'أدخل خط الطول (-180 إلى 180)'), "number", <MapPin className="w-5 h-5" />)}
               </div>
 
               <div>

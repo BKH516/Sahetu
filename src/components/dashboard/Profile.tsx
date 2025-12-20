@@ -34,11 +34,24 @@ const Profile: React.FC = () => {
   });
   const [specializationId, setSpecializationId] = useState<number | null>(null);
   const [specializations, setSpecializations] = useState<any[]>([]);
+  const [provinceId, setProvinceId] = useState<number | null>(null);
+  const [provinces, setProvinces] = useState<any[]>([]);
 
   useEffect(() => {
     loadProfile();
     loadSpecializations();
+    loadProvinces();
   }, []);
+
+  const loadProvinces = async () => {
+    try {
+      const response = await ApiEndpointHelper.getProvinces();
+      const provincesData = Array.isArray(response.data) ? response.data : response.data?.data || [];
+      setProvinces(provincesData);
+    } catch (error) {
+      setProvinces([]);
+    }
+  };
 
   const getSpecializationText = (specialization: any): string => {
     if (!specialization) return t('profile.notSpecified');
@@ -163,7 +176,8 @@ const Profile: React.FC = () => {
             license_image_path: selectedItem?.doctor?.license_image_path || '',
             instructions_before_booking: safeDisplayText(selectedItem?.doctor?.instructions_before_booking, ''),
             created_at: selectedItem?.doctor?.created_at || '',
-            updated_at: selectedItem?.doctor?.updated_at || ''
+            updated_at: selectedItem?.doctor?.updated_at || '',
+            province_id: selectedItem?.doctor?.province_id || null
           };
         }
       } else {
@@ -188,7 +202,8 @@ const Profile: React.FC = () => {
           license_image_path: response.data?.doctor?.license_image_path || '',
           instructions_before_booking: safeDisplayText(response.data?.doctor?.instructions_before_booking, ''),
           created_at: response.data?.doctor?.created_at || '',
-          updated_at: response.data?.doctor?.updated_at || ''
+          updated_at: response.data?.doctor?.updated_at || '',
+          province_id: response.data?.doctor?.province_id || null
         };
       }
 
@@ -205,6 +220,13 @@ const Profile: React.FC = () => {
       
       if (profileData.specialization_id) {
         setSpecializationId(profileData.specialization_id);
+      }
+      
+      // Set province_id from profile data
+      if (profileData.province_id) {
+        setProvinceId(profileData.province_id);
+      } else {
+        setProvinceId(null);
       }
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || error.message || t('profile.loadError');
@@ -234,6 +256,10 @@ const Profile: React.FC = () => {
       
       if (specializationId) {
         submitData.append('specialization_id', specializationId.toString());
+      }
+      
+      if (provinceId) {
+        submitData.append('province_id', provinceId.toString());
       }
       
       if (formData.address) {
@@ -518,7 +544,7 @@ const Profile: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
               {/* Specialization */}
-              <div className="space-y-2 group md:col-span-2">
+              <div className="space-y-2 group">
                 <label className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2">
                   <Award size={16} />
                   {t('profile.specialization')}
@@ -539,6 +565,34 @@ const Profile: React.FC = () => {
                 ) : (
                   <div className="px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl text-slate-900 dark:text-slate-100 border border-green-200 dark:border-green-800 group-hover:shadow-md transition-all duration-300">
                     {getSpecializationText(profile.specialization)}
+                  </div>
+                )}
+              </div>
+
+              {/* Province */}
+              <div className="space-y-2 group">
+                <label className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                  <MapPin size={16} />
+                  {t('profile.province', 'المحافظة')}
+                </label>
+                {isEditing ? (
+                  <select
+                    value={provinceId ?? ''}
+                    onChange={(e) => setProvinceId(e.target.value ? parseInt(e.target.value) : null)}
+                    className="w-full px-4 py-3 border-2 border-slate-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300"
+                  >
+                    <option value="">
+                      {provinceId === null ? t('profile.notSpecified', 'غير محدد') : t('profile.selectProvince', 'اختر المحافظة')}
+                    </option>
+                    {provinces.map((province) => (
+                      <option key={province.id} value={province.id}>
+                        {province.name_ar || province.name_en || province.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl text-slate-900 dark:text-slate-100 border border-blue-200 dark:border-blue-800 group-hover:shadow-md transition-all duration-300">
+                    {provinceId ? (provinces.find(p => p.id === provinceId)?.name_ar || provinces.find(p => p.id === provinceId)?.name_en || t('profile.notSpecified')) : t('profile.notSpecified')}
                   </div>
                 )}
               </div>

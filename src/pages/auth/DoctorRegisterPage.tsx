@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { MailIcon, LockIcon, UserIcon, PhoneIcon, BriefcaseIcon, MapPinIcon, AcademicCapIcon } from '../../components/ui/InputIcons';
 import { Button } from '../../components/ui/button';
@@ -26,15 +26,23 @@ const DoctorRegisterPage: React.FC<DoctorRegisterPageProps> = ({ onSwitchToLogin
   const [gender, setGender] = useState('');
   const [age, setAge] = useState('');
   const [instructions, setInstructions] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [provinceId, setProvinceId] = useState<string>('');
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{ fullName?: string; email?: string; phone?: string; password?: string; specialization?: string; address?: string; gender?: string; age?: string; general?: string }>({});
+  const [errors, setErrors] = useState<{ fullName?: string; email?: string; phone?: string; password?: string; specialization?: string; address?: string; gender?: string; age?: string; latitude?: string; longitude?: string; provinceId?: string; general?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [blockRemainingTime, setBlockRemainingTime] = useState(0);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [specializations, setSpecializations] = useState<Specialization[]>([]);
   const [isLoadingSpecializations, setIsLoadingSpecializations] = useState(false);
+  const [provinces, setProvinces] = useState<any[]>([]);
+  const [isLoadingProvinces, setIsLoadingProvinces] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  // Use refs to prevent duplicate calls in Strict Mode
+  const provincesFetchedRef = useRef(false);
+  const specializationsFetchedRef = useRef(false);
   const handleBack = () => {
     if (typeof onBackToLanding === 'function') {
       try { onBackToLanding(); return; } catch {}
@@ -62,7 +70,18 @@ const DoctorRegisterPage: React.FC<DoctorRegisterPageProps> = ({ onSwitchToLogin
 
   
   useEffect(() => {
+    // Prevent duplicate calls in React Strict Mode
+    if (provincesFetchedRef.current && specializationsFetchedRef.current) {
+      return;
+    }
+
     const fetchSpecializations = async () => {
+      // Skip if already fetched or currently fetching
+      if (specializationsFetchedRef.current || specializations.length > 0) {
+        return;
+      }
+      
+      specializationsFetchedRef.current = true;
       setIsLoadingSpecializations(true);
       try {
         const response = await ApiEndpointHelper.getSpecializations();
@@ -75,12 +94,50 @@ const DoctorRegisterPage: React.FC<DoctorRegisterPageProps> = ({ onSwitchToLogin
         
         setSpecializations([]);
         setErrors({ general: 'فشل في تحميل التخصصات من الخادم. يرجى المحاولة مرة أخرى لاحقاً.' });
+        // Reset ref on error so it can retry if needed
+        specializationsFetchedRef.current = false;
       } finally {
         setIsLoadingSpecializations(false);
       }
     };
 
+    const fetchProvinces = async () => {
+      // Skip if already fetched or currently fetching
+      if (provincesFetchedRef.current || provinces.length > 0) {
+        return;
+      }
+      
+      provincesFetchedRef.current = true;
+      setIsLoadingProvinces(true);
+      try {
+        const response = await ApiEndpointHelper.getProvinces();
+        // Use the same logic as Profile component which works
+        const provincesData = Array.isArray(response.data) ? response.data : response.data?.data || [];
+        setProvinces(provincesData);
+        // Clear any previous errors if we got data
+        if (provincesData.length > 0) {
+          setErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors.general;
+            return newErrors;
+          });
+        }
+      } catch (error: any) {
+        console.error('Error fetching provinces:', error);
+        setProvinces([]);
+        const errorMessage = error?.message || error?.response?.data?.message || 'فشل في تحميل المحافظات. يرجى المحاولة مرة أخرى.';
+        setErrors((prev) => ({ ...prev, general: errorMessage }));
+        // Reset ref on error so it can retry if needed (but only for non-rate-limit errors)
+        if (error?.response?.status !== 429) {
+          provincesFetchedRef.current = false;
+        }
+      } finally {
+        setIsLoadingProvinces(false);
+      }
+    };
+
     fetchSpecializations();
+    fetchProvinces();
   }, []);
 
   const validateForm = () => {
@@ -97,6 +154,11 @@ const DoctorRegisterPage: React.FC<DoctorRegisterPageProps> = ({ onSwitchToLogin
     if (!gender) newErrors.gender = '⚠️ الجنس مطلوب';
     if (!age) newErrors.age = '⚠️ العمر مطلوب';
     else if (isNaN(Number(age)) || Number(age) < 18 || Number(age) > 100) newErrors.age = '❌ يرجى إدخال عمر صحيح بين 18 و 100';
+    if (!latitude) newErrors.latitude = '⚠️ خط العرض مطلوب';
+    else if (isNaN(Number(latitude)) || Number(latitude) < -90 || Number(latitude) > 90) newErrors.latitude = '❌ يرجى إدخال خط عرض صحيح (-90 إلى 90)';
+    if (!longitude) newErrors.longitude = '⚠️ خط الطول مطلوب';
+    else if (isNaN(Number(longitude)) || Number(longitude) < -180 || Number(longitude) > 180) newErrors.longitude = '❌ يرجى إدخال خط طول صحيح (-180 إلى 180)';
+    if (!provinceId) newErrors.provinceId = '⚠️ المحافظة مطلوبة';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -121,18 +183,24 @@ const DoctorRegisterPage: React.FC<DoctorRegisterPageProps> = ({ onSwitchToLogin
     setSuccessMessage(null);
     
     try {
-      const response = await ApiEndpointHelper.registerDoctor({
-        full_name: fullName,
-        email,
-        phone_number: phone,
-        password,
-        password_confirmation: password,
-        specialization_id: Number(specializationId),
-        address,
-        gender,
-        age: Number(age),
-        instructions_before_booking: instructions,
-      });
+      const formData = new FormData();
+      formData.append('full_name', fullName);
+      formData.append('email', email);
+      formData.append('phone_number', phone);
+      formData.append('password', password);
+      formData.append('password_confirmation', password);
+      formData.append('specialization_id', String(specializationId));
+      formData.append('address', address);
+      formData.append('gender', gender);
+      formData.append('age', String(age));
+      formData.append('latitude', latitude);
+      formData.append('longitude', longitude);
+      formData.append('province_id', provinceId);
+      if (instructions) {
+        formData.append('profile_description', instructions);
+      }
+
+      const response = await ApiEndpointHelper.registerDoctor(formData);
 
       // دالة لتنظيف الرسائل من "and X more error(s)"
       const cleanMessage = (msg: string): string => {
@@ -501,6 +569,65 @@ const DoctorRegisterPage: React.FC<DoctorRegisterPageProps> = ({ onSwitchToLogin
             errors.address
           )}
 
+          {/* Latitude and Longitude */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {renderInput(
+              "latitude",
+              latitude,
+              "خط العرض (Latitude)",
+              "number",
+              <MapPinIcon />,
+              setLatitude,
+              errors.latitude
+            )}
+            {renderInput(
+              "longitude",
+              longitude,
+              "خط الطول (Longitude)",
+              "number",
+              <MapPinIcon />,
+              setLongitude,
+              errors.longitude
+            )}
+          </div>
+
+          {/* Province select */}
+          <div className="relative group">
+            <div
+              className={`absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none text-slate-400 dark:text-gray-500 transition-all duration-300 peer-focus-within:text-cyan-600 ${
+                errors.provinceId ? "text-red-500 dark:text-red-400" : ""
+              }`}
+            >
+              <MapPinIcon />
+            </div>
+            <select
+              id="province"
+              value={provinceId}
+              onChange={(e) => setProvinceId(e.target.value)}
+              className={`peer bg-white dark:bg-gray-800 border text-slate-900 dark:text-gray-100 text-sm rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 block w-full ps-10 p-2.5 transition-all duration-300 ${
+                errors.provinceId
+                  ? "border-red-500 dark:border-red-400 focus:ring-red-500 focus:border-red-500 shake"
+                  : "border-slate-300 dark:border-gray-600 hover:border-cyan-300 dark:hover:border-cyan-600"
+              }`}
+              required
+              disabled={isLoading || isBlocked || !isOnline || isLoadingProvinces}
+            >
+              <option value="" disabled>
+                {isLoadingProvinces ? "جاري تحميل المحافظات..." : "اختر المحافظة"}
+              </option>
+              {provinces.map((province) => (
+                <option key={province.id} value={String(province.id)}>
+                  {province.name_ar || province.name_en || province.name}
+                </option>
+              ))}
+            </select>
+            {errors.provinceId && (
+              <p className="mt-1 text-xs text-red-500 dark:text-red-400 animate-pulse">
+                {errors.provinceId}
+              </p>
+            )}
+          </div>
+
           {/* Instructions textarea */}
           <div className="relative group">
             <div
@@ -548,7 +675,7 @@ const DoctorRegisterPage: React.FC<DoctorRegisterPageProps> = ({ onSwitchToLogin
 
           <Button
             type="submit"
-            disabled={isLoading || isBlocked || !isOnline || specializations.length === 0}
+            disabled={isLoading || isBlocked || !isOnline || specializations.length === 0 || provinces.length === 0}
             className="w-full mt-3 text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 focus:ring-4 focus:outline-none focus:ring-cyan-300 font-bold rounded-lg text-sm px-5 py-3 text-center transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
           >
             {isLoading ? (
@@ -558,8 +685,8 @@ const DoctorRegisterPage: React.FC<DoctorRegisterPageProps> = ({ onSwitchToLogin
               </div>
             ) : isBlocked ? (
               "حساب محظور مؤقتاً"
-            ) : specializations.length === 0 ? (
-              "يرجى تحميل التخصصات أولاً"
+            ) : specializations.length === 0 || provinces.length === 0 ? (
+              "يرجى تحميل البيانات أولاً"
             ) : (
               "تسجيل كطبيب"
             )}

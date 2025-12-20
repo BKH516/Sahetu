@@ -4,6 +4,7 @@ import { Calendar, Clock, Edit, Plus, ChevronRight, Sun, Moon } from 'lucide-rea
 import api from '../../lib/axios';
 import { DoctorWorkSchedule } from '../../types';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import { useAuthStore, getDecodedToken } from '../../store/auth.store';
 
 interface ScheduleOverviewProps {
   onNavigate: (tab: string) => void;
@@ -14,6 +15,7 @@ const ScheduleOverview: React.FC<ScheduleOverviewProps> = ({ onNavigate }) => {
   const [schedule, setSchedule] = useState<DoctorWorkSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { token } = useAuthStore();
 
   const dayMap: Record<string, string> = {
     saturday: t('schedule.days.saturday'),
@@ -36,8 +38,24 @@ const ScheduleOverview: React.FC<ScheduleOverviewProps> = ({ onNavigate }) => {
   };
 
   useEffect(() => {
-    fetchSchedule();
-  }, []);
+    // Wait for token to be available before making API call
+    const currentToken = token || useAuthStore.getState().token || getDecodedToken();
+    if (currentToken) {
+      fetchSchedule();
+    } else {
+      // Wait a bit for token to be available
+      const timer = setTimeout(() => {
+        const retryToken = useAuthStore.getState().token || getDecodedToken();
+        if (retryToken) {
+          fetchSchedule();
+        } else {
+          setLoading(false);
+          setError('Authentication required');
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [token]);
 
   const fetchSchedule = async () => {
     try {

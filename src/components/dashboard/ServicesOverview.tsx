@@ -4,6 +4,7 @@ import { Stethoscope, Clock, DollarSign, Plus, Edit, TrendingUp, ChevronRight, P
 import api from '../../lib/axios';
 import { DoctorService } from '../../types';
 import LoadingSpinner from '../ui/LoadingSpinner';
+import { useAuthStore, getDecodedToken } from '../../store/auth.store';
 
 interface ServicesOverviewProps {
   onNavigate: (tab: string) => void;
@@ -14,10 +15,27 @@ const ServicesOverview: React.FC<ServicesOverviewProps> = ({ onNavigate }) => {
   const [services, setServices] = useState<DoctorService[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { token } = useAuthStore();
 
   useEffect(() => {
-    fetchServices();
-  }, []);
+    // Wait for token to be available before making API call
+    const currentToken = token || useAuthStore.getState().token || getDecodedToken();
+    if (currentToken) {
+      fetchServices();
+    } else {
+      // Wait a bit for token to be available
+      const timer = setTimeout(() => {
+        const retryToken = useAuthStore.getState().token || getDecodedToken();
+        if (retryToken) {
+          fetchServices();
+        } else {
+          setLoading(false);
+          setError('Authentication required');
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [token]);
 
   const fetchServices = async () => {
     try {
