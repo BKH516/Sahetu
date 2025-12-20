@@ -129,6 +129,80 @@ export class ApiEndpointHelper {
   }
 
   
+  static async getProvinces(): Promise<any> {
+    const endpoints = [
+      '/api/provinces',
+      '/api/nurse/provinces',
+      '/api/public/provinces',
+      '/api/governorates',
+      '/api/public/governorates'
+    ];
+
+    let lastError: any = null;
+    const timeout = 5000; // 5 seconds timeout per request
+
+    // Try localhost first in development to avoid CORS issues
+    if (import.meta.env.DEV) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        const localResponse = await fetch(`${API_CONFIG.DEVELOPMENT}/api/provinces`, {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (localResponse.ok) {
+          const data = await localResponse.json();
+          if (data && (Array.isArray(data) || Array.isArray(data.data))) {
+            return { data: Array.isArray(data) ? data : data.data };
+          }
+        }
+      } catch (localError: any) {
+        // Silently continue to try other endpoints
+        if (localError.name !== 'AbortError') {
+          console.debug('Local provinces endpoint failed, trying remote endpoints');
+        }
+      }
+    }
+
+    // Try remote endpoints with timeout
+    for (const endpoint of endpoints) {
+      try {
+        const response = await authApi.get(endpoint, { 
+          timeout
+        });
+        
+        if (response.data && (Array.isArray(response.data) || Array.isArray(response.data.data))) {
+          return response;
+        } else {
+          throw new Error('Invalid data format');
+        }
+      } catch (error: any) {
+        lastError = error;
+        
+        // Skip CORS errors silently and continue to next endpoint
+        if (error.code === 'ERR_NETWORK' || error.message?.includes('CORS') || error.code === 'ERR_FAILED') {
+          continue; // Try next endpoint on CORS errors
+        }
+        
+        // Don't continue if it's a serious error (not 404/403)
+        if (error.response?.status && ![404, 403].includes(error.response.status)) {
+          // Only throw if we've tried all endpoints or got a server error
+          const isLastEndpoint = endpoint === endpoints[endpoints.length - 1];
+          if (isLastEndpoint || error.response.status >= 500) {
+            throw error;
+          }
+        }
+      }
+    }
+    
+    // Return empty array if all endpoints failed (no fallback data for provinces)
+    return { data: [] };
+  }
+
+  
   static async createUpdateEndpointIfNotExists(): Promise<boolean> {
     try {
       

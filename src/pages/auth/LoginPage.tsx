@@ -461,6 +461,13 @@ const LoginPage: React.FC<LoginPageProps> = React.memo(({
               if (field === "email") handleEmailChange(e as React.ChangeEvent<HTMLInputElement>);
               if (field === "password") handlePasswordChange(e as React.ChangeEvent<HTMLInputElement>);
             }}
+            autoComplete={
+              field === "email" 
+                ? "email" 
+                : field === "password" 
+                ? "current-password" 
+                : "off"
+            }
             className={`w-full ps-12 ${showToggle && isPassword ? "pe-12" : "pe-4"} py-4 bg-white/80 dark:bg-gray-900/50 border-2 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 ${
               errors[field] ? "border-red-500 focus:ring-red-500/30 focus:border-red-500" : "border-gray-300 dark:border-gray-700 hover:border-blue-600 dark:hover:border-blue-600"
             }`}
