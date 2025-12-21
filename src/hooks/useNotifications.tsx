@@ -73,13 +73,18 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
 
         updateFromPayload(notificationsData);
       } catch (err: any) {
+        // Handle 404 gracefully - endpoint might not exist yet or user has no notifications
         if (err.response?.status === 404) {
           updateFromPayload([]);
           setError(null);
+          // Don't log 404 errors to console as they're expected in some cases
           return;
         }
 
-        console.error('Error fetching notifications:', err);
+        // Only log non-404 errors
+        if (err.response?.status !== 404) {
+          console.error('Error fetching notifications:', err);
+        }
         updateFromPayload([]);
         setError(err.response?.data?.message || 'فشل في جلب الإشعارات');
       } finally {

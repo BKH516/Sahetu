@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { MailIcon, LockIcon, UserIcon, PhoneIcon, BriefcaseIcon, MapPinIcon, AcademicCapIcon } from '../../components/ui/InputIcons';
 import { Button } from '../../components/ui/button';
@@ -16,6 +17,7 @@ interface DoctorRegisterPageProps {
 }
 
 const DoctorRegisterPage: React.FC<DoctorRegisterPageProps> = ({ onSwitchToLogin, onRegisterSuccess, onBackToLanding }) => {
+  const { i18n } = useTranslation();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -501,7 +503,7 @@ const DoctorRegisterPage: React.FC<DoctorRegisterPageProps> = ({ onSwitchToLogin
               </option>
               {specializations.map((spec) => (
                 <option key={spec.id} value={String(spec.id)}>
-                  {spec.name_ar}
+                  {i18n.language === 'ar' ? spec.name_ar : spec.name_en}
                 </option>
               ))}
             </select>

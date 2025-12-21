@@ -91,7 +91,10 @@ const ScheduleTable = () => {
     setIsAddingSchedule(true);
     try {
       const form = new URLSearchParams();
-      form.append('day_of_week', reverseDayMap[newItem.day]);
+      // newItem.day is already in English format (saturday, sunday, etc.) from DayDropdown
+      // Use it directly, or fallback to reverseDayMap if it's in Arabic (for backward compatibility)
+      const dayValue = newItem.day in dayMap ? newItem.day : (reverseDayMap[newItem.day] || newItem.day);
+      form.append('day_of_week', dayValue);
       form.append('start_time', newItem.start?.slice(0,5));
       form.append('end_time', newItem.end?.slice(0,5));
       const res = await api.post('/api/doctor/schedules', form, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
@@ -138,7 +141,10 @@ const ScheduleTable = () => {
     setUpdatingScheduleId(updatedItem.id);
     try {
       const form = new URLSearchParams();
-      form.append('day_of_week', reverseDayMap[updatedItem.day]);
+      // updatedItem.day is already in English format (saturday, sunday, etc.) from EditScheduleModal Select
+      // Use it directly, or fallback to reverseDayMap if it's in Arabic (for backward compatibility)
+      const dayValue = updatedItem.day in dayMap ? updatedItem.day : (reverseDayMap[updatedItem.day] || updatedItem.day);
+      form.append('day_of_week', dayValue);
       form.append('start_time', updatedItem.start?.slice(0,5));
       form.append('end_time', updatedItem.end?.slice(0,5));
       const res = await api.post(`/api/doctor/schedules/${updatedItem.id}`, form, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
@@ -265,7 +271,7 @@ const ScheduleTable = () => {
               const item = schedule[modalEditIndex];
               return {
                 id: item.id,
-                day: dayMap[item.day_of_week],
+                day: item.day_of_week, // Use English day name directly (saturday, sunday, etc.)
                 start: item.start_time,
                 end: item.end_time,
               };

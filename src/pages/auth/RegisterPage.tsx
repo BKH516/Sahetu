@@ -50,6 +50,7 @@ interface FormErrors {
   age?: string;
   gender?: string;
   license_image?: string;
+  profile_image?: string;
   profile_description?: string;
   fcm_token?: string;
   latitude?: string;
@@ -84,6 +85,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [license_image, setLicenseImage] = useState<File | null>(null);
+  const [profile_image, setProfileImage] = useState<File | null>(null);
   const [profile_description, setProfileDescription] = useState("");
   const [fcm_token, setFcmToken] = useState("");
   const [latitude, setLatitude] = useState("");
@@ -433,7 +435,11 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
       
       if (license_image) {
         formData.append("license_image", license_image);
-        }
+      }
+      
+      if (profile_image) {
+        formData.append("profile_image", profile_image);
+      }
 
         const response = await authApi.post("/api/doctor/register", formData, {
           headers: {
@@ -546,12 +552,19 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'license' | 'profile') => {
     const file = e.target.files?.[0];
     if (file) {
-      setLicenseImage(file);
-      if (errors.license_image) {
-        setErrors((prev) => ({ ...prev, license_image: undefined }));
+      if (type === 'license') {
+        setLicenseImage(file);
+        if (errors.license_image) {
+          setErrors((prev) => ({ ...prev, license_image: undefined }));
+        }
+      } else {
+        setProfileImage(file);
+        if (errors.profile_image) {
+          setErrors((prev) => ({ ...prev, profile_image: undefined }));
+        }
       }
     }
   };
@@ -655,6 +668,40 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
                 {renderInput("phone_number", phone_number, t('auth.register.phonePlaceholder'), "tel", <Phone className="w-5 h-5" />)}
             </div>
             </div>
+
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">
+                {t('auth.register.profileImage')}
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 start-0 flex items-center ps-4 pointer-events-none text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <input
+                  type="file"
+                  id="profile_image"
+                  onChange={(e) => handleFileChange(e, 'profile')}
+                  accept="image/*"
+                  className={`w-full ps-12 pe-4 py-3.5 bg-gray-50/50 dark:bg-gray-800/50 border-2 rounded-xl text-gray-900 dark:text-gray-100 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 dark:file:bg-blue-900/30 file:text-blue-700 dark:file:text-blue-400 hover:file:bg-blue-100 dark:hover:file:bg-blue-900/50 ${
+                    errors.profile_image
+                      ? "border-red-300 dark:border-red-600"
+                      : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
+                  }`}
+                  disabled={isLoading || !isOnline}
+                />
+              </div>
+              {profile_image && (
+                <p className="text-sm text-green-600 dark:text-green-400 mt-2 flex items-center gap-1">
+                  <CheckCircle2 className="w-4 h-4" />
+                  {profile_image.name}
+                </p>
+              )}
+              {errors.profile_image && (
+                <p className="text-sm text-red-500 dark:text-red-400 mt-2">
+                  {errors.profile_image}
+                </p>
+              )}
+            </div>
           </div>
         );
 
@@ -692,7 +739,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
                   </option>
                   {specializations.map((spec) => (
                     <option key={spec.id} value={String(spec.id)}>
-                      {spec.name_ar}
+                      {isRTL ? spec.name_ar : spec.name_en}
                     </option>
                   ))}
                 </select>
@@ -824,7 +871,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
                 <input
                   type="file"
                   id="license_image"
-                  onChange={handleFileChange}
+                  onChange={(e) => handleFileChange(e, 'license')}
                   accept="image/*"
                     className={`w-full ps-12 pe-4 py-3.5 bg-gray-50/50 dark:bg-gray-800/50 border-2 rounded-xl text-gray-900 dark:text-gray-100 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 dark:file:bg-blue-900/30 file:text-blue-700 dark:file:text-blue-400 hover:file:bg-blue-100 dark:hover:file:bg-blue-900/50 ${
                     errors.license_image

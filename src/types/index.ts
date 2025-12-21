@@ -62,6 +62,7 @@ export interface DoctorProfile {
   age: number;
   gender: 'male' | 'female';
   profile_description: string;
+  profile_image_path?: string;
   license_image_path?: string;
   instructions_before_booking?: string;
   years_of_experience?: number;

@@ -185,6 +185,9 @@ const Reservations: React.FC = React.memo(() => {
   const { fetchNotifications: refreshNotifications } = useNotifications();
   const [isSubmittingReservation, setIsSubmittingReservation] = useState(false);
   const [statusUpdatingId, setStatusUpdatingId] = useState<number | null>(null);
+  const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{ id: number; status: Reservation['status'] } | null>(null);
+  const [isReasonDialogOpen, setIsReasonDialogOpen] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState('');
   const previousReservationsRef = useRef<Reservation[]>([]);
 
   const fetchReservations = useCallback(async ({ silent = false, notifyOnNew = false }: { silent?: boolean; notifyOnNew?: boolean } = {}) => {

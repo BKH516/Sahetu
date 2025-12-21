@@ -8,6 +8,7 @@ import { useAuthStore } from '../../store/auth.store';
 import { useDoctorProfile } from '../../hooks';
 import { useTheme } from '../../hooks/useTheme';
 import LanguageSwitcher from '../ui/LanguageSwitcher';
+import { getBaseUrl } from '../../config/api.config';
 
 const Profile: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -22,6 +23,8 @@ const Profile: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [licenseImage, setLicenseImage] = useState<File | null>(null);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<ProfileUpdateData>({
     full_name: '',
@@ -173,6 +176,7 @@ const Profile: React.FC = () => {
             age: selectedItem?.doctor?.age || 0,
             gender: selectedItem?.doctor?.gender || 'male',
             profile_description: safeDisplayText(selectedItem?.doctor?.profile_description, t('profile.noDescription')),
+            profile_image_path: selectedItem?.doctor?.profile_image_path || '',
             license_image_path: selectedItem?.doctor?.license_image_path || '',
             instructions_before_booking: safeDisplayText(selectedItem?.doctor?.instructions_before_booking, ''),
             created_at: selectedItem?.doctor?.created_at || '',
@@ -199,6 +203,7 @@ const Profile: React.FC = () => {
           age: response.data?.doctor?.age || 0,
           gender: response.data?.doctor?.gender || 'male',
           profile_description: safeDisplayText(response.data?.doctor?.profile_description, t('profile.noDescription')),
+          profile_image_path: response.data?.doctor?.profile_image_path || '',
           license_image_path: response.data?.doctor?.license_image_path || '',
           instructions_before_booking: safeDisplayText(response.data?.doctor?.instructions_before_booking, ''),
           created_at: response.data?.doctor?.created_at || '',
@@ -282,6 +287,10 @@ const Profile: React.FC = () => {
         submitData.append('instructions_before_booking', formData.instructions_before_booking);
       }
       
+      if (profileImage) {
+        submitData.append('profile_image', profileImage);
+      }
+      
       if (licenseImage) {
         submitData.append('license_image', licenseImage);
       }
@@ -300,14 +309,33 @@ const Profile: React.FC = () => {
           updateUser(updateData);
         }
         
+        // تحديث profile_image_path مباشرة من الـ response أو من الصورة المرفوعة
+        if (profileImage && profile) {
+          // إذا كانت هناك صورة مرفوعة، نستخدم preview مؤقتاً حتى يتم التحديث من الـ API
+          // أو نستخدم path من الـ response إن كان متوفراً
+          const newProfileImagePath = response.data?.doctor?.profile_image_path || 
+                                     response.data?.profile_image_path ||
+                                     profile.profile_image_path;
+          
+          if (newProfileImagePath) {
+            setProfile((prev) => prev ? { ...prev, profile_image_path: newProfileImagePath } : null);
+          }
+        }
+        
         setSuccess(t('profile.profileUpdated'));
         setIsEditing(false);
         
         // تحديث cache الـ useDoctorProfile حتى تتحدث الصفحة الرئيسية
         await refetchDoctorProfile();
         
-        setTimeout(async () => {
-          await loadProfile();
+        // إعادة تحميل البيانات من الـ API
+        await loadProfile();
+        
+        // مسح preview بعد التحديث
+        setProfileImagePreview(null);
+        setProfileImage(null);
+        
+        setTimeout(() => {
           setSuccess(null);
         }, 2000);
       } else {
@@ -341,7 +369,7 @@ const Profile: React.FC = () => {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'profile' | 'license') => {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith('image/')) {
@@ -354,7 +382,17 @@ const Profile: React.FC = () => {
         return;
       }
       
-      setLicenseImage(file);
+      if (type === 'profile') {
+        setProfileImage(file);
+        // إنشاء preview للصورة
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setProfileImagePreview(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setLicenseImage(file);
+      }
       setError(null);
     }
   };
@@ -405,6 +443,12 @@ const Profile: React.FC = () => {
                 onClick={() => {
                   setIsEditing(!isEditing);
                   setError(null);
+                  // مسح preview عند إلغاء التعديل
+                  if (isEditing) {
+                    setProfileImagePreview(null);
+                    setProfileImage(null);
+                    setLicenseImage(null);
+                  }
                 }}
                 className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md"
               >
@@ -532,6 +576,88 @@ const Profile: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Profile Image */}
+              <div className="space-y-2 md:col-span-2 group">
+                <label className="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                  <User size={16} />
+                  {t('auth.register.profileImage', 'الصورة الشخصية')}
+                </label>
+                {!isEditing ? (
+                  <div className="flex items-center gap-4">
+                    {(profile.profile_image_path || profileImagePreview) ? (
+                      <div className="relative">
+                        <img
+                          src={profileImagePreview || `${getBaseUrl()}/${profile.profile_image_path}`}
+                          alt={t('auth.register.profileImage', 'الصورة الشخصية')}
+                          className="w-24 h-24 rounded-full object-cover border-4 border-cyan-200 dark:border-cyan-800 shadow-lg"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            if (target.nextElementSibling) {
+                              (target.nextElementSibling as HTMLElement).style.display = 'flex';
+                            }
+                          }}
+                        />
+                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-100 to-blue-100 dark:from-cyan-900 dark:to-blue-900 border-4 border-cyan-200 dark:border-cyan-800 shadow-lg hidden items-center justify-center">
+                          <User size={32} className="text-cyan-600 dark:text-cyan-400" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-100 to-blue-100 dark:from-cyan-900 dark:to-blue-900 border-4 border-cyan-200 dark:border-cyan-800 shadow-lg flex items-center justify-center">
+                        <User size={32} className="text-cyan-600 dark:text-cyan-400" />
+                      </div>
+                    )}
+                    <div className="text-sm text-slate-600 dark:text-slate-400">
+                      {(profile.profile_image_path || profileImagePreview) ? t('profile.profileImageUploaded', 'تم رفع الصورة الشخصية') : t('profile.noProfileImage', 'لا توجد صورة شخصية')}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {/* عرض الصورة الحالية أو Preview للصورة الجديدة */}
+                    {(profile.profile_image_path || profileImagePreview) && (
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={profileImagePreview || `${getBaseUrl()}/${profile.profile_image_path}`}
+                          alt={t('auth.register.profileImage', 'الصورة الشخصية')}
+                          className="w-20 h-20 rounded-full object-cover border-2 border-cyan-300 dark:border-cyan-700 shadow-md"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                          {profileImagePreview ? t('profile.newImagePreview', 'معاينة الصورة الجديدة') : t('profile.currentProfileImage', 'الصورة الحالية')}
+                        </span>
+                      </div>
+                    )}
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageChange(e, 'profile')}
+                        className="hidden"
+                        id="profile-image-upload"
+                      />
+                      <label
+                        htmlFor="profile-image-upload"
+                        className="flex items-center justify-center gap-3 px-4 py-4 border-2 border-dashed border-cyan-300 dark:border-cyan-600 rounded-xl bg-cyan-50 dark:bg-cyan-900/20 hover:bg-cyan-100 dark:hover:bg-cyan-900/30 cursor-pointer transition-all duration-300 group"
+                      >
+                        <Upload size={20} className="text-cyan-600 group-hover:scale-110 transition-transform" />
+                        <span className="text-slate-700 dark:text-slate-300 font-medium">
+                          {profileImage ? profileImage.name : t('auth.register.uploadProfileImage', 'اختر الصورة الشخصية')}
+                        </span>
+                      </label>
+                      {profileImage && (
+                        <div className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
+                          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                          {t('profile.profileImageSelected', { name: profileImage.name, defaultValue: 'تم اختيار الصورة: {{name}}' })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -558,7 +684,7 @@ const Profile: React.FC = () => {
                     <option value="">{t('profile.selectSpecialization')}</option>
                     {specializations.map((spec) => (
                       <option key={spec.id} value={spec.id}>
-                        {spec.name_ar || spec.name || spec.name_en}
+                        {isRTL ? spec.name_ar : spec.name_en}
                       </option>
                     ))}
                   </select>
@@ -608,7 +734,7 @@ const Profile: React.FC = () => {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageChange}
+                      onChange={(e) => handleImageChange(e, 'license')}
                       className="hidden"
                       id="license-image-upload"
                     />
