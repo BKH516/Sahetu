@@ -116,7 +116,7 @@ export interface Reservation {
     date: string;
     start_time: string;
     end_time: string;
-    status: 'pending' | 'confirmed' | 'accepted' | 'cancelled' | 'finished';
+    status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed';
     user: User;
     doctor_service: DoctorService;
     created_at: string;

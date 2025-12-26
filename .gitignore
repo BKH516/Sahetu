@@ -1,0 +1,53 @@
+node_modules
+dist
+docs
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+Thumbs.db
+
+# System files
+AppData/
+.aws/
+.bito/
+.bitowingman/
+.cache/
+.codeium/
+.config/
+.continue/
+.cursor/
+.local/
+.ollama/
+.pulse/
+.ssh/
+.th-client/
+.void-editor/
+.vscode/
+.android/
+
+# Windows
+Desktop/
+Documents/
+Downloads/
+Favorites/
+Links/
+Music/
+Pictures/
+Videos/
+OneDrive/
+Contacts/
+Searches/
+Saved Games/
+3D Objects/
+NTUSER.*
+ntuser.*
+*.regtrans-ms
+
+# Other
+.esd_auth
+.gitconfig
+.lesshst
+.pulse-cookie
+.npmrc

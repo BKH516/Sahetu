@@ -90,7 +90,7 @@ const BookingHistory: React.FC = () => {
   
   const getStatusText = (status: BookingHistoryItem['status']) => {
     switch (status) {
-      case 'finished': return 'منتهي';
+      case 'completed': return 'مكتمل';
       case 'cancelled': return 'ملغي';
       default: return status;
     }
@@ -99,7 +99,7 @@ const BookingHistory: React.FC = () => {
   
   const getStatusColor = (status: BookingHistoryItem['status']) => {
     switch (status) {
-      case 'finished': return 'bg-green-100 text-green-800';
+      case 'completed': return 'bg-green-100 text-green-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -107,9 +107,10 @@ const BookingHistory: React.FC = () => {
 
   
   const totalBookings = bookingHistory.length;
-  const finishedBookings = bookingHistory.filter(item => item.status === 'finished').length;
+  const completedBookings = bookingHistory.filter(item => item.status === 'completed').length;
   const cancelledBookings = bookingHistory.filter(item => item.status === 'cancelled').length;
-  const completionRate = totalBookings > 0 ? Math.round((finishedBookings / totalBookings) * 100) : 0;
+  const rejectedBookings = bookingHistory.filter(item => item.status === 'rejected').length;
+  const completionRate = totalBookings > 0 ? Math.round((completedBookings / totalBookings) * 100) : 0;
 
   return (
     <div className="space-y-6 relative">
@@ -135,7 +136,7 @@ const BookingHistory: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">جميع الحالات</SelectItem>
-                  <SelectItem value="finished">منتهي</SelectItem>
+                  <SelectItem value="completed">مكتمل</SelectItem>
                   <SelectItem value="cancelled">ملغي</SelectItem>
                 </SelectContent>
               </Select>
@@ -165,7 +166,7 @@ const BookingHistory: React.FC = () => {
           </FilterBar>
 
           {}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 mb-6">
             <StatisticsCard
               icon={<BarChart2 className="text-primary" />}
               label="إجمالي الحجوزات"
@@ -174,8 +175,8 @@ const BookingHistory: React.FC = () => {
             />
             <StatisticsCard
               icon={<CheckCircle className="text-success" />}
-              label="منتهي"
-              value={finishedBookings}
+              label="مكتمل"
+              value={completedBookings}
               color="bg-success/10 text-success"
             />
             <StatisticsCard
@@ -183,6 +184,12 @@ const BookingHistory: React.FC = () => {
               label="ملغي"
               value={cancelledBookings}
               color="bg-danger/10 text-danger"
+            />
+            <StatisticsCard
+              icon={<Ban className="text-red-700" />}
+              label="مرفوض"
+              value={rejectedBookings}
+              color="bg-red-100 text-red-700"
             />
             <StatisticsCard
               icon={<ClipboardList className="text-accent" />}

@@ -96,13 +96,12 @@ const ReservationsOverview: React.FC<ReservationsOverviewProps> = ({ onNavigate 
     return resDate >= monthAgo;
   });
 
-  const acceptedReservations = reservations.filter(res => res.status === 'accepted');
-  const confirmedReservations = reservations.filter(res => res.status === 'confirmed');
+  const approvedReservations = reservations.filter(res => res.status === 'approved');
   const cancelledReservations = reservations.filter(res => res.status === 'cancelled');
   const pendingReservations = reservations.filter(res => res.status === 'pending');
-  const finishedReservations = reservations.filter(res => res.status === 'finished');
+  const completedReservations = reservations.filter(res => res.status === 'completed');
 
-  // Calculate total revenue using doctor_service.price (string) for confirmed/finished reservations
+  // Calculate total revenue using doctor_service.price (string) for approved/completed reservations
   const parsePriceToNumber = (price: any): number => {
     if (price == null) return 0;
     try {
@@ -115,7 +114,7 @@ const ReservationsOverview: React.FC<ReservationsOverviewProps> = ({ onNavigate 
   };
 
   const totalRevenue = reservations
-    .filter(res => res.status === 'confirmed' || res.status === 'finished')
+    .filter(res => res.status === 'approved' || res.status === 'completed')
     .reduce((sum, res) => sum + parsePriceToNumber(res.doctor_service?.price), 0);
   const isRTL = i18n.language === 'ar';
 
@@ -155,17 +154,11 @@ const ReservationsOverview: React.FC<ReservationsOverviewProps> = ({ onNavigate 
           <p className="text-3xl font-bold text-red-800 dark:text-red-300">{formatNumberEn(cancelledReservations.length)}</p>
                         </div>
 
-        {/* Accepted */}
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => onNavigate('reservations')}>
-          <p className="text-sm font-medium text-blue-700 dark:text-blue-400 mb-2">{t('reservations.status.accepted')}</p>
-          <p className="text-3xl font-bold text-blue-800 dark:text-blue-300">{formatNumberEn(acceptedReservations.length)}</p>
-        </div>
-
-        {/* Confirmed */}
+        {/* Approved (Confirmed) */}
         <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-4 border border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => onNavigate('reservations')}>
-          <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-2">{t('reservations.status.confirmed')}</p>
-          <p className="text-3xl font-bold text-green-800 dark:text-green-300">{formatNumberEn(confirmedReservations.length)}</p>
-        </div>
+          <p className="text-sm font-medium text-green-700 dark:text-green-400 mb-2">{t('reservations.status.approved')}</p>
+          <p className="text-3xl font-bold text-green-800 dark:text-green-300">{formatNumberEn(approvedReservations.length)}</p>
+                     </div>
 
         {/* Pending */}
         <div className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl p-4 border border-yellow-200 dark:border-yellow-800 hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => onNavigate('reservations')}>
@@ -197,10 +190,10 @@ const ReservationsOverview: React.FC<ReservationsOverviewProps> = ({ onNavigate 
           <p className="text-3xl font-bold text-blue-800 dark:text-blue-300">{formatNumberEn(todayReservations.length)}</p>
         </div>
 
-        {/* Finished */}
+        {/* Completed */}
         <div className="bg-gradient-to-br from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 rounded-xl p-4 border border-teal-200 dark:border-teal-800 hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => onNavigate('reservations')}>
-          <p className="text-sm font-medium text-teal-700 dark:text-teal-400 mb-2">{t('reservations.status.finished')}</p>
-          <p className="text-3xl font-bold text-teal-800 dark:text-teal-300">{formatNumberEn(finishedReservations.length)}</p>
+          <p className="text-sm font-medium text-teal-700 dark:text-teal-400 mb-2">{t('reservations.status.completed')}</p>
+          <p className="text-3xl font-bold text-teal-800 dark:text-teal-300">{formatNumberEn(completedReservations.length)}</p>
         </div>
       </div>
 

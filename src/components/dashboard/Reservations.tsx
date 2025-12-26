@@ -25,7 +25,7 @@ import FilterBar from './FilterBar';
 import DialogCustom from "../ui/DialogCustom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../ui/dialog";
 import api from '../../lib/axios';
-import { Reservation } from '../../types';
+import { Reservation, DoctorWorkSchedule } from '../../types';
 import LoadingSpinner from '../ui/LoadingSpinner';
 import DropdownFilterButton from '../ui/DropdownFilterButton';
 import { useAuth } from '../../hooks/useAuth';
@@ -168,6 +168,7 @@ const Reservations: React.FC = React.memo(() => {
   const [selectedPatient, setSelectedPatient] = useState<Reservation | null>(null);
   const [selectedReservationForStatus, setSelectedReservationForStatus] = useState<Reservation | null>(null);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
+  const [schedule, setSchedule] = useState<DoctorWorkSchedule[]>([]);
   const [newReservation, setNewReservation] = useState({
     full_name: '',
     age: '',
@@ -208,7 +209,22 @@ const Reservations: React.FC = React.memo(() => {
       
       const apiData = res.data;
       
-      const reservationsArray: Reservation[] = Array.isArray(apiData) ? apiData : (Array.isArray(apiData.data) ? apiData.data : []);
+      let reservationsArray: Reservation[] = Array.isArray(apiData) ? apiData : (Array.isArray(apiData.data) ? apiData.data : []);
+      
+      // Restore original times from localStorage for manual reservations
+      // This ensures user-selected times are preserved even if backend modified them
+      reservationsArray = reservationsArray.map(reservation => {
+        const localData = SimpleReservationStorage.get(reservation.id);
+        if (localData && localData.original_start_time && localData.original_end_time) {
+          // Restore original times selected by user
+          return {
+            ...reservation,
+            start_time: localData.original_start_time,
+            end_time: localData.original_end_time
+          };
+        }
+        return reservation;
+      });
       
       if (notifyOnNew && previousReservationsRef.current.length > 0) {
         const previousIds = new Set(previousReservationsRef.current.map(res => res.id));
@@ -293,13 +309,26 @@ const Reservations: React.FC = React.memo(() => {
     }
   }, []);
 
+  const fetchSchedule = useCallback(async () => {
+    try {
+      const res = await api.get('/api/doctor/schedules');
+      const apiData = res.data;
+      const scheduleArray = Array.isArray(apiData) ? apiData : (Array.isArray(apiData.data) ? apiData.data : []);
+      setSchedule(scheduleArray);
+    } catch (err: any) {
+      // Silent fail - schedule validation will handle empty schedule
+      setSchedule([]);
+    }
+  }, []);
+
   useEffect(() => {
     if (!isAuthenticated) return;
     setStorageReady(true);
     fetchReservations();
     fetchServices();
     fetchAvailableDates();
-  }, [isAuthenticated, fetchReservations, fetchServices, fetchAvailableDates]);
+    fetchSchedule();
+  }, [isAuthenticated, fetchReservations, fetchServices, fetchAvailableDates, fetchSchedule]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -327,6 +356,47 @@ const Reservations: React.FC = React.memo(() => {
   }, [isAuthenticated, fetchReservations]);
 
   
+  // Helper function to get day of week in English format from a date string
+  const getDayOfWeek = (dateString: string): string => {
+    const date = new Date(dateString);
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return days[date.getDay()];
+  };
+
+  // Helper function to convert time string to minutes for comparison
+  const timeToMinutes = (timeStr: string): number => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  // Helper function to validate if booking time is within working hours
+  const isTimeWithinWorkingHours = (date: string, startTime: string, endTime: string): { valid: boolean; message?: string } => {
+    const dayOfWeek = getDayOfWeek(date);
+    const daySchedule = schedule.find(s => s.day_of_week === dayOfWeek);
+    
+    if (!daySchedule) {
+      return {
+        valid: false,
+        message: t('reservations.noWorkingHoursForDay')
+      };
+    }
+
+    const bookingStartMinutes = timeToMinutes(startTime);
+    const bookingEndMinutes = timeToMinutes(endTime);
+    const scheduleStartMinutes = timeToMinutes(daySchedule.start_time);
+    const scheduleEndMinutes = timeToMinutes(daySchedule.end_time);
+
+    // Check if booking time is completely within working hours
+    if (bookingStartMinutes < scheduleStartMinutes || bookingEndMinutes > scheduleEndMinutes) {
+      return {
+        valid: false,
+        message: t('reservations.timeOutsideWorkingHours')
+      };
+    }
+
+    return { valid: true };
+  };
+
   const handleAddReservation = async (e: React.FormEvent) => {
     e.preventDefault();
     setSuccess(null);
@@ -369,19 +439,16 @@ const Reservations: React.FC = React.memo(() => {
       return;
     }
     
-    // Validate time range (e.g., business hours 8 AM to 8 PM)
-    const startHour = parseInt(newReservation.start_time.split(':')[0]);
-    const endHour = parseInt(newReservation.end_time.split(':')[0]);
+    // Validate against actual working hours from schedule
+    const workingHoursValidation = isTimeWithinWorkingHours(
+      newReservation.date,
+      newReservation.start_time,
+      newReservation.end_time
+    );
     
-    if (startHour < 6 || startHour > 22) {
-      setError(t('reservations.startTimeRange'));
-      showAlert(t('reservations.startTimeRange'), 'error');
-      return;
-    }
-    
-    if (endHour < 6 || endHour > 23) {
-      setError(t('reservations.endTimeRange'));
-      showAlert(t('reservations.endTimeRange'), 'error');
+    if (!workingHoursValidation.valid) {
+      setError(workingHoursValidation.message || t('reservations.timeOutsideWorkingHours'));
+      showAlert(workingHoursValidation.message || t('reservations.timeOutsideWorkingHours'), 'error');
       return;
     }
     
@@ -398,15 +465,16 @@ const Reservations: React.FC = React.memo(() => {
     
     setIsSubmittingReservation(true);
     try {
-      
+      // Send exact time as selected by user - no automatic arrangement
+      // The time input provides HH:MM format which is what the API expects
       const reservationData = {
         full_name: newReservation.full_name,
         age: newReservation.age,
         phone_number: newReservation.phone_number,
         doctor_service_id: newReservation.doctor_service_id,
         date: newReservation.date,
-        start_time: newReservation.start_time,
-        end_time: newReservation.end_time,
+        start_time: newReservation.start_time, // Exact time as selected - no modification
+        end_time: newReservation.end_time, // Exact time as selected - no modification
         notes: newReservation.notes,
         gender: newReservation.gender
       };
@@ -459,12 +527,20 @@ const Reservations: React.FC = React.memo(() => {
 
       
       if (newReservationObj && newReservationObj.id) {
+        // Preserve original times selected by user (backend may modify them)
+        // Override backend times with user-selected times for manual reservations
+        newReservationObj.start_time = newReservation.start_time;
+        newReservationObj.end_time = newReservation.end_time;
+        
         const localData = {
           full_name: newReservation.full_name,
           phone_number: newReservation.phone_number,
           age: newReservation.age,
           gender: newReservation.gender,
-          notes: newReservation.notes
+          notes: newReservation.notes,
+          // Also save original times to ensure they persist
+          original_start_time: newReservation.start_time,
+          original_end_time: newReservation.end_time
         };
         
         // Save to simple storage (synchronous, reliable)
@@ -703,6 +779,7 @@ const Reservations: React.FC = React.memo(() => {
             onClick={() => {
               setIsAddDialogOpen(true);
               fetchAvailableDates();
+              fetchSchedule();
             }}
           >
             + {t('reservations.addManualReservation')}
@@ -1397,6 +1474,7 @@ const Reservations: React.FC = React.memo(() => {
                 onClick={() => {
                   setIsAddDialogOpen(true);
                   fetchAvailableDates();
+                  fetchSchedule();
                 }}
                 section="bookings"
                 className="mt-4"

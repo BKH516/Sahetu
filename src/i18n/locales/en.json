@@ -459,6 +459,8 @@
     "startTimeMustBeLess": "Start time must be less than end time",
     "startTimeRange": "Start time must be between 6 AM and 10 PM",
     "endTimeRange": "End time must be between 6 AM and 11 PM",
+    "timeOutsideWorkingHours": "⚠️ The selected time is outside working hours. Please choose a time within the working hours added in the schedule.",
+    "noWorkingHoursForDay": "⚠️ No working hours specified for this day. Please add working hours first in the schedule.",
     "cannotBookPast": "Cannot book an appointment in the past. Please choose today's date or a future date.",
     "addError": "An error occurred while adding the reservation.",
     "slotAlreadyBooked": "⚠️ This time slot is already booked. Please choose another date or time.",

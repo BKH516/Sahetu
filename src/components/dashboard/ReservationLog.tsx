@@ -84,7 +84,7 @@ const ReservationLog: React.FC = () => {
     
     return reservationLogs.filter(log => {
       
-      const allowedStatuses = ['finished', 'cancelled'];
+      const allowedStatuses = ['completed', 'cancelled'];
       const matchesStatus = allowedStatuses.includes(log.status) && (filterStatus === "all" || log.status === filterStatus);
       const matchesDate = filterDate === "all" || (log.date && log.date.includes(filterDate));
       
@@ -109,8 +109,9 @@ const ReservationLog: React.FC = () => {
   
   const getStatusText = (status: Reservation['status']) => {
     switch (status) {
-      case 'finished': return t('reservations.status.finished');
+      case 'completed': return t('reservations.status.completed');
       case 'cancelled': return t('reservations.status.cancelled');
+      case 'rejected': return t('reservations.status.rejected');
       default: return status;
     }
   };
@@ -118,8 +119,9 @@ const ReservationLog: React.FC = () => {
   
   const getStatusColor = (status: Reservation['status']) => {
     switch (status) {
-      case 'finished': return 'bg-success/10 text-success dark:bg-success/20 dark:text-success-light';
+      case 'completed': return 'bg-success/10 text-success dark:bg-success/20 dark:text-success-light';
       case 'cancelled': return 'bg-danger/10 text-danger dark:bg-danger/20 dark:text-danger-light';
+      case 'rejected': return 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
   };
@@ -130,10 +132,10 @@ const ReservationLog: React.FC = () => {
   };
 
   
-  const totalFinished = reservationLogs.filter(log => log.status === 'finished').length;
+  const totalCompleted = reservationLogs.filter(log => log.status === 'completed').length;
   const totalCancelled = reservationLogs.filter(log => log.status === 'cancelled').length;
   const totalRevenue = reservationLogs
-    .filter(log => log.status === 'finished' && log.doctor_service?.price)
+    .filter(log => log.status === 'completed' && log.doctor_service?.price)
     .reduce((sum, log) => sum + Number(log.doctor_service?.price || 0), 0);
 
   if (loading || !storageReady) {
@@ -161,7 +163,7 @@ const ReservationLog: React.FC = () => {
         <DropdownFilterButton
           options={[
             { value: 'all', label: t('history.allStatuses') },
-            { value: 'finished', label: t('reservations.status.finished') },
+            { value: 'completed', label: t('history.completedStatus') },
             { value: 'cancelled', label: t('reservations.status.cancelled') },
           ]}
           value={filterStatus}
@@ -200,8 +202,8 @@ const ReservationLog: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
         <StatisticsCard
           icon={<CheckCircle className="text-green-600 dark:text-green-400" />}
-          label={t('reservations.status.finished')}
-          value={totalFinished}
+          label={t('history.completedStatus')}
+          value={totalCompleted}
           color="bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400"
         />
         <StatisticsCard
