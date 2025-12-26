@@ -16,7 +16,6 @@ async function createFallbackPage() {
   try {
     const indexContent = await fs.readFile(indexPath);
     await fs.writeFile(fallbackPath, indexContent);
-    console.log('[postbuild] 404.html generated for SPA routing.');
   } catch (error) {
     console.error('[postbuild] Failed to create 404.html:', error);
     process.exitCode = 1;

@@ -456,10 +456,10 @@
   "reservations": {
     "status": {
       "pending": "في الانتظار",
-      "accepted": "مقبول",
-      "confirmed": "مؤكد",
+      "approved": "موافق عليه",
+      "rejected": "مرفوض",
       "cancelled": "ملغي",
-      "finished": "منتهي"
+      "completed": "مكتمل"
     },
     "addManualReservation": "إضافة حجز يدوي",
     "selectGender": "يرجى اختيار الجنس",

@@ -68,9 +68,6 @@ export class ApiEndpointHelper {
         }
       } catch (localError: any) {
         // Silently continue to try other endpoints
-        if (localError.name !== 'AbortError') {
-          console.debug('Local endpoint failed, trying remote endpoints');
-        }
       }
     }
 
@@ -161,9 +158,6 @@ export class ApiEndpointHelper {
         }
       } catch (localError: any) {
         // Silently continue to try other endpoints
-        if (localError.name !== 'AbortError') {
-          console.debug('Local provinces endpoint failed, trying remote endpoints');
-        }
       }
     }
 

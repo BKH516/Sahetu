@@ -446,10 +446,10 @@
   "reservations": {
     "status": {
       "pending": "Pending",
-      "accepted": "Accepted",
-      "confirmed": "Confirmed",
+      "approved": "Approved",
+      "rejected": "Rejected",
       "cancelled": "Cancelled",
-      "finished": "Finished"
+      "completed": "Completed"
     },
     "addManualReservation": "Add Manual Reservation",
     "selectGender": "Please select gender",

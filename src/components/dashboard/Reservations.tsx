@@ -156,7 +156,6 @@ const Reservations: React.FC = React.memo(() => {
   const [customAlert, setCustomAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [storageReady, setStorageReady] = useState(false);
 
-  const [filterStatus, setFilterStatus] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300); // Debounce search for better performance
   const [currentPage, setCurrentPage] = useState(1);
@@ -660,10 +659,10 @@ const Reservations: React.FC = React.memo(() => {
       // Reload reservations to get fresh data
       await fetchReservations();
       
-      // Keep local data when status changes to finished or cancelled
+      // Keep local data when status changes to completed or cancelled
       // This ensures phone numbers are available in ReservationLog
       const localData = SimpleReservationStorage.get(id);
-      if (localData && (newStatus === 'finished' || newStatus === 'cancelled')) {
+      if (localData && (newStatus === 'completed' || newStatus === 'cancelled')) {
         // Re-save the data to ensure it persists
         SimpleReservationStorage.save(id, localData);
       }
@@ -692,20 +691,18 @@ const Reservations: React.FC = React.memo(() => {
     if (!storageReady) return [];
     
     return reservations.filter(reservation => {
-      
-      const allowedStatuses = ['pending', 'accepted', 'confirmed'];
-      
-      
-      let matchesStatus = true;
-      if (filterStatus !== "all") {
-        
-        matchesStatus = reservation.status === filterStatus;
-      } else {
-        
-        matchesStatus = allowedStatuses.includes(reservation.status);
+      // Exclude completed and cancelled reservations - they should only appear in ReservationLog
+      if (reservation.status === 'completed' || reservation.status === 'cancelled') {
+        return false;
       }
       
+      // Only show pending, approved, and rejected reservations
+      const allowedStatuses = ['pending', 'approved', 'rejected'];
+      if (!allowedStatuses.includes(reservation.status)) {
+        return false;
+      }
       
+      // Search filter only (no status filter)
       const localData = SimpleReservationStorage.get(reservation.id);
       const patientData = getPatientData(reservation, localData);
       
@@ -718,9 +715,9 @@ const Reservations: React.FC = React.memo(() => {
         serviceName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
         phoneNumber.includes(debouncedSearchTerm);
       
-      return matchesStatus && matchesSearch;
+      return matchesSearch;
     });
-  }, [reservations, filterStatus, debouncedSearchTerm, storageReady]);
+  }, [reservations, debouncedSearchTerm, storageReady]);
 
   
   const totalPages = useMemo(() => Math.ceil(filteredReservations.length / itemsPerPage), [filteredReservations.length]);
@@ -734,10 +731,10 @@ const Reservations: React.FC = React.memo(() => {
   const getStatusText = (status: Reservation['status']) => {
     switch (status) {
       case 'pending': return t('reservations.status.pending');
-      case 'accepted': return t('reservations.status.accepted');
-      case 'confirmed': return t('reservations.status.confirmed');
+      case 'approved': return t('reservations.status.approved');
+      case 'rejected': return t('reservations.status.rejected');
       case 'cancelled': return t('reservations.status.cancelled');
-      case 'finished': return t('reservations.status.finished');
+      case 'completed': return t('reservations.status.completed');
       default: return status;
     }
   };
@@ -746,10 +743,10 @@ const Reservations: React.FC = React.memo(() => {
   const getStatusColor = (status: Reservation['status']) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300';
-      case 'accepted': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'confirmed': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
+      case 'approved': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
+      case 'rejected': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
       case 'cancelled': return 'bg-danger/10 text-danger dark:bg-danger/20 dark:text-danger-light';
-      case 'finished': return 'bg-success/10 text-success dark:bg-success/20 dark:text-success-light';
+      case 'completed': return 'bg-success/10 text-success dark:bg-success/20 dark:text-success-light';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
   };
@@ -1092,10 +1089,9 @@ const Reservations: React.FC = React.memo(() => {
               {(() => {
                 const currentStatus = selectedReservationForStatus.status;
                 const statusOptions = [
-                  { value: 'accepted', label: t('reservations.status.accepted'), icon: '✅', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', borderColor: 'border-blue-300 dark:border-blue-700', allowedFrom: ['pending'] },
-                  { value: 'confirmed', label: t('reservations.status.confirmed'), icon: '✔️', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', borderColor: 'border-green-300 dark:border-green-700', allowedFrom: ['accepted'] },
-                  { value: 'finished', label: t('reservations.status.finished'), icon: '🏁', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400', borderColor: 'border-teal-300 dark:border-teal-700', allowedFrom: ['confirmed'] },
-                  { value: 'cancelled', label: t('reservations.status.cancelled'), icon: '❌', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', borderColor: 'border-red-300 dark:border-red-700', allowedFrom: ['pending', 'accepted'] },
+                  { value: 'approved', label: t('reservations.status.approved'), icon: '✅', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', borderColor: 'border-green-300 dark:border-green-700', allowedFrom: ['pending'] },
+                  { value: 'completed', label: t('reservations.status.completed'), icon: '🏁', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400', borderColor: 'border-teal-300 dark:border-teal-700', allowedFrom: ['approved'] },
+                  { value: 'cancelled', label: t('reservations.status.cancelled'), icon: '❌', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400', borderColor: 'border-red-300 dark:border-red-700', allowedFrom: ['pending', 'approved'] },
                 ];
 
                 return statusOptions.map((status) => {
@@ -1250,28 +1246,10 @@ const Reservations: React.FC = React.memo(() => {
               className="dark:bg-zinc-800 dark:border-zinc-700 dark:text-gray-100 dark:placeholder:text-gray-400"
             />
           </div>
-          <div className="flex-1 min-w-[140px]">
-            <DropdownFilterButton
-              options={[
-                { value: 'all', label: t('reservations.allStatuses') },
-                { value: 'pending', label: t('reservations.status.pending') },
-                { value: 'accepted', label: t('reservations.status.accepted') },
-                { value: 'confirmed', label: t('reservations.status.confirmed') },
-                { value: 'cancelled', label: t('reservations.status.cancelled') },
-              ]}
-              value={filterStatus}
-              onChange={setFilterStatus}
-              placeholder={t('reservations.selectStatus')}
-              className="min-w-[140px]"
-              section="bookings"
-              size="sm"
-            />
-          </div>
           <div className="flex items-end">
             <Button
               onClick={() => {
                 setSearchTerm("");
-                setFilterStatus("all");
               }}
               section="bookings"
               size="sm"
@@ -1283,29 +1261,23 @@ const Reservations: React.FC = React.memo(() => {
         </FilterBar>
 
         {}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-6">
           <StatisticsCard
-            icon={<BarChart2 className="text-primary dark:text-primary-light" />}
+            icon={<BarChart2 className="text-white" />}
             label={t('reservations.totalReservations')}
             value={filteredReservations.length}
             color="bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light"
           />
           <StatisticsCard
-          icon={<Clock className="text-yellow-600 dark:text-yellow-300" />}
+            icon={<Clock className="text-white" />}
             label={t('reservations.status.pending')}
             value={filteredReservations.filter(r => r.status === 'pending').length}
             color="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
           />
           <StatisticsCard
-            icon={<CheckCircle className="text-blue-600 dark:text-blue-400" />}
-            label={t('reservations.status.accepted')}
-            value={filteredReservations.filter(r => r.status === 'accepted').length}
-            color="bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400"
-          />
-          <StatisticsCard
-            icon={<CheckCircle className="text-green-600 dark:text-green-400" />}
-            label={t('reservations.status.confirmed')}
-            value={filteredReservations.filter(r => r.status === 'confirmed').length}
+            icon={<CheckCircle className="text-white" />}
+            label={t('reservations.status.approved')}
+            value={filteredReservations.filter(r => r.status === 'approved').length}
             color="bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400"
           />
         </div>
